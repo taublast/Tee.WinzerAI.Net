@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NeutralLanguage>de-DE</NeutralLanguage>
+    <!-- Browser-Kopf: leer, bis DrawnUi/SkiaSharp unter .NET 11 für WebAssembly bauen (docs/konzept.md, Abschnitt 3) -->
+    <WebTfm></WebTfm>
+    <DrawnUiVersion>1.10.8.25</DrawnUiVersion>
+  </PropertyGroup>
+</Project>

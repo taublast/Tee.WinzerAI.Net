@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Browser-Kopf kommt über $(WebTfm) dazu, sobald DrawnUi/SkiaSharp unter .NET 11 für WebAssembly bauen -->
+    <TargetFrameworks>net11.0-windows;$(WebTfm)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-windows'">
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0-windows'">
+    <PackageReference Include="DrawnUi.Wpf" Version="$(DrawnUiVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net11.0-windows'">
+    <PackageReference Include="DrawnUi.Blazor.Wasm" Version="$(DrawnUiVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Winzer.Presentation\Winzer.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>

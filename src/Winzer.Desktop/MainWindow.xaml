@@ -1,0 +1,7 @@
+<Window x:Class="Winzer.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WinzerAI" Width="1600" Height="940" MinWidth="1280" MinHeight="760"
+        Background="#120c0e" WindowStartupLocation="CenterScreen">
+    <Grid x:Name="Root" />
+</Window>

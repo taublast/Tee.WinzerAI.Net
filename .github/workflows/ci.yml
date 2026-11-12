@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    # WPF baut nur unter Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 11.0.x
+      - name: Bauen
+        run: dotnet build Winzer.slnx -c Release
+      - name: Tests (Regeln, Vergleichspartien gegen das Original)
+        run: dotnet test Winzer.slnx -c Release --no-build

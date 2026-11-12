@@ -1,0 +1,58 @@
+# Oberfläche bauen: Regeln und Bausteine
+
+Die Oberfläche liegt in `src/Winzer.Ui` und besteht aus DrawnUi-Steuerelementen, die in C# zusammengesetzt werden. Vorlage für jede Szene ist `Scenes/EstateScene.cs`; die Bausteine stehen in `Kit.cs`, der Rahmen in `Shell.cs`.
+
+## Grundsätze
+
+1. **Nichts scrollt.** Jede Ansicht passt auf die Bühne. Was nicht passt, wird geblättert (`Kit.Pager` mit `session.Nav.Page(...)`), in Reiter geteilt (`Kit.Tabs`) oder erst bei Auswahl im Inspektor gezeigt.
+2. **Entwurfseinheiten.** Alle Maße beziehen sich auf eine Fläche von 1920 × 1080. `Kit` rechnet um; nie selbst mit `Kit.S` multiplizieren, außer bei Eigenschaften, die `Kit` nicht setzt.
+3. **Neuaufbau statt Bindung.** Nach jeder Änderung (`session.Changed`) baut der Kopf den ganzen Baum neu. Szenen sind deshalb reine Funktionen `Build(GameSession)` ohne eigenen Zustand. Alles, was einen Neuaufbau überdauern muss (Reiter, Auswahl, Seite, Schieberstand), liegt im `Navigator` (`session.Nav`).
+4. **Auswählen, dann handeln.** Links/Mitte die Dinge (Parzellen, Tanks, Posten), rechts der Inspektor mit Werten und Aktionen des gewählten Dings. Ist nichts gewählt, gilt das erste Ding.
+5. **Jede Aktion sagt vorher, was sie tut.** Schaltflächen tragen eine Unterzeile mit Wirkung und Kosten. Geht eine Aktion gerade nicht, wird `session.Problem(action)` als `problem` übergeben – die Schaltfläche ist dann gesperrt und zeigt den Grund.
+6. **Texte auf Deutsch**, Zahlen über `Util.FormatEuro` / `Util.FormatNumber`, gerundet mit `Js.Round`.
+
+## Bühne
+
+Eine Szene liefert einen `Kit.Layer(0, 0, Shell.StageWidth, Shell.StageHeight)` (1808 × 988). Kopfzeile und Leiste kommen vom Rahmen.
+
+| Bereich | Lage auf der Bühne | Zweck |
+|---|---|---|
+| Hintergrund | 0, 0, 1808 × 988 | `Kit.Paint` mit eigener Szenenmalerei |
+| Reiter | x 28, y 20 | `Kit.Tabs(28, 20, …)`; aktiver Reiter `session.Nav.Tab`, Wechsel `session.Nav.SetTab(i)` |
+| Arbeitsfläche | x 28 … 1230, y 90 … 960 | Dinge zum Auswählen |
+| Inspektor | `Kit.Card(1260, 20, 524, 948, 22)` | Titel (Serif 32), Werte (`Kit.Row`), Mengenwahl (`Kit.AmountSlider`), Aktionen (`Kit.Button`, 460 × 84, Abstand 96) |
+
+## Bausteine (`Kit`)
+
+- `Layer(x, y, w, h)` – Behälter mit eigenen Koordinaten; `.With(kinder…)` hängt Kinder an (null wird übergangen).
+- `Box`, `Card` (Pergament), `Glass` (dunkle Tafel) – Flächen; sie können selbst Kinder tragen.
+- `Text(text, x, y, w, h, größe, farbe, bold, serif, align, maxLines)` – kürzt mit „…“, bricht bei `maxLines > 1` um. Emojis funktionieren.
+- `Button(titel, x, y, w, h, onTap, kind, sub, problem, fontSize, align)` – `ButtonKind.Primary` (Weinrot), `Secondary` (Rahmen, auf hellem Grund), `Ghost` (hell gefüllt), `Gold`, `Dark` (auf dunklem Grund).
+- `IconButton`, `Badge`, `Pager`, `Tabs`, `Row`, `AmountSlider`.
+- `Paint(x, y, w, h, (canvas, w, h) => …)` – freie Zeichnung mit SkiaSharp in Entwurfseinheiten; Hilfen in `Draw` (`Fill`, `Stroke`, `VerticalGradient`, `Path` mit SVG-Pfad, `Ring`).
+- `.Tap(action)` macht jedes Element antippbar; `.At(x, y, w, h)` setzt Lage und Größe.
+- Farben in `Theme` (DrawnUi-`Color` und `Sk…` für SkiaSharp). Auf dunklem Grund `Cream`/`CreamSoft`/`Gold`, auf Pergament `Ink`/`InkSoft`/`Wine`.
+
+## Navigator
+
+- `session.Nav.Go(scene, tab?)`, `SetTab(i)`
+- `Selected("keller.batch")` / `Select("keller.batch", id)`
+- `Page("keller.lots", seitenzahl)` / `SetPage(...)`
+- `Amount("keller.amount", 1)` / `SetAmount(...)` – Anteil 0–1 für Mengen
+- `Show(Overlay.…)`
+
+## Spielzüge
+
+`session.Run(new GameAction.Bottle(id, hl))` führt aus, sichert und baut neu auf. `session.Problem(action)` liefert den Grund, warum ein Zug nicht geht, oder `null`. Regeln und Berechnungen (Preise, Vorschau, Kosten) kommen aus `Winzer.Engine` – nichts davon in der Oberfläche nachrechnen, wenn die Engine eine Funktion dafür hat.
+
+## Ansehen ohne Klicken
+
+```powershell
+$env:Path = "C:\Program Files\dotnet;" + $env:Path
+dotnet build src\Winzer.Desktop
+src\Winzer.Desktop\bin\Debug\net11.0-windows\WinzerAI.exe --shot bild.png --scene Keller --tab 1 --months 33 --play
+```
+
+`--shot` spielt eine Partie die angegebenen Züge weiter (`--play` liest, füllt ab und leiht dabei), zeigt Szene und Reiter, speichert ein Bild (1280 × 720) und beendet sich. Mit den erweiterten Regeln hat ein Jahr 14 Züge, `--months 9` ist also die erste Oktoberhälfte. Weitere Schalter: `--seed`, `--region`, `--rules 1|2`, `--overlay Lexicon|Menu|Decision|Plan|Review|Show|Auto`, `--otab`, `--summary`, `--menu`.
+
+`--click 1750,1015` klickt vor dem Foto mit der echten Maus an eine Stelle der Entwurfsfläche (mehrfach angebbar, bewegt kurz den Zeiger). Neben dem Bild entsteht `bild.png.txt` mit dem Stand danach (Szene, Zug, Konto, Chargen …) – so lässt sich prüfen, ob eine Schaltfläche wirklich wirkt.

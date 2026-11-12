@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1f1c"/><stop offset="1" stop-color="#14100f"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="0.5" cy="0" r="0.9">
+      <stop offset="0" stop-color="#ffcf7a" stop-opacity="0.55"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1418" stop-opacity="0.9"/><stop offset="1" stop-color="#1c1418" stop-opacity="0.78"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6d7780"/><stop offset="0.35" stop-color="#d7dee4"/><stop offset="0.7" stop-color="#8d98a2"/><stop offset="1" stop-color="#555e66"/>
+    </linearGradient>
+    <linearGradient id="white" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1dc7a"/><stop offset="1" stop-color="#c9a93a"/></linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a0304e"/><stop offset="1" stop-color="#5c1429"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d477"/><stop offset="1" stop-color="#c8962e"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf4e4"/><stop offset="1" stop-color="#eedfc2"/></linearGradient>
+    <linearGradient id="oak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b07a45"/><stop offset="1" stop-color="#6e4524"/></linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.45"/></filter>
+  </defs>
+
+  <!-- Gewölbekeller -->
+  <rect width="1920" height="1080" fill="url(#wall)"/>
+  <g fill="none" stroke="#4a3830" stroke-width="26" opacity="0.8">
+    <path d="M112 620 V360 A300 300 0 0 1 712 360 V620"/>
+    <path d="M712 620 V360 A300 300 0 0 1 1312 360 V620"/>
+  </g>
+  <rect x="112" y="92" width="1228" height="700" fill="url(#lamp)"/>
+  <rect x="112" y="770" width="1228" height="310" fill="#1b1513"/>
+
+  <!-- Kopfzeile und Navigation wie in der Gutsansicht (verkürzt) -->
+  <rect x="0" y="0" width="1920" height="92" fill="url(#glass)"/>
+  <text x="112" y="42" fill="#f4ead7" font-size="30" font-weight="700" font-family="Georgia, serif">Keller</text>
+  <text x="112" y="72" fill="#d9c7a3" font-size="19">Oktober · Jahr 4 · Tank 214 / 300 hl · Barrique 18 / 40 hl</text>
+  <g fill="#f4ead7" font-size="24" font-weight="600">
+    <rect x="1290" y="20" width="230" height="52" rx="26" fill="#f4ead7" fill-opacity="0.12"/><text x="1336" y="54">42.380 €</text>
+    <circle cx="1314" cy="46" r="13" fill="url(#gold)"/>
+    <rect x="1536" y="20" width="200" height="52" rx="26" fill="#f4ead7" fill-opacity="0.12"/><text x="1582" y="54">187 / 600</text>
+    <circle cx="1560" cy="46" r="13" fill="url(#gold)"/>
+  </g>
+  <rect x="0" y="92" width="112" height="988" fill="url(#glass)"/>
+  <g text-anchor="middle" font-size="17" fill="#d9c7a3">
+    <circle cx="56" cy="170" r="36" fill="#f4ead7" fill-opacity="0.12"/><text x="56" y="232">Gut</text>
+    <circle cx="56" cy="300" r="36" fill="#f4ead7" fill-opacity="0.12"/><text x="56" y="362">Weinberg</text>
+    <circle cx="56" cy="430" r="36" fill="url(#gold)"/><text x="56" y="492" fill="#f6d477" font-weight="700">Keller</text>
+    <circle cx="56" cy="560" r="36" fill="#f4ead7" fill-opacity="0.12"/><text x="56" y="622">Markt</text>
+    <circle cx="56" cy="690" r="36" fill="#f4ead7" fill-opacity="0.12"/><text x="56" y="752">Kontor</text>
+    <circle cx="56" cy="820" r="36" fill="#f4ead7" fill-opacity="0.12"/><text x="56" y="882">Dorf</text>
+  </g>
+
+  <!-- Reiter innerhalb der Szene statt langer Seite -->
+  <g font-size="20" font-weight="600">
+    <rect x="140" y="112" width="170" height="46" rx="23" fill="url(#gold)"/><text x="225" y="142" text-anchor="middle" fill="#3a1d24">Tanks &amp; Fässer</text>
+    <rect x="322" y="112" width="170" height="46" rx="23" fill="#f4ead7" fill-opacity="0.12"/><text x="407" y="142" text-anchor="middle" fill="#f4ead7">Flaschenlager</text>
+    <rect x="504" y="112" width="150" height="46" rx="23" fill="#f4ead7" fill-opacity="0.12"/><text x="579" y="142" text-anchor="middle" fill="#f4ead7">Weinmarkt</text>
+    <rect x="666" y="112" width="170" height="46" rx="23" fill="#f4ead7" fill-opacity="0.12"/><text x="751" y="142" text-anchor="middle" fill="#f4ead7">Kellermeister</text>
+  </g>
+
+  <!-- Tanks: jede Charge ein Tank, Füllstand = Menge, Farbe = Weinart -->
+  <g filter="url(#soft)">
+    <g transform="translate(160 220)">
+      <rect width="150" height="380" rx="26" fill="url(#steel)"/>
+      <rect x="18" y="150" width="114" height="212" rx="14" fill="url(#white)"/>
+      <rect x="18" y="18" width="114" height="132" rx="14" fill="#1c1418" fill-opacity="0.45"/>
+      <rect x="-6" y="-6" width="162" height="392" rx="30" fill="none" stroke="url(#gold)" stroke-width="5"/>
+    </g>
+    <g transform="translate(350 220)">
+      <rect width="150" height="380" rx="26" fill="url(#steel)"/>
+      <rect x="18" y="80" width="114" height="282" rx="14" fill="url(#white)"/>
+      <rect x="18" y="18" width="114" height="62" rx="14" fill="#1c1418" fill-opacity="0.45"/>
+    </g>
+    <g transform="translate(540 220)">
+      <rect width="150" height="380" rx="26" fill="url(#steel)"/>
+      <rect x="18" y="230" width="114" height="132" rx="14" fill="url(#red)"/>
+      <rect x="18" y="18" width="114" height="212" rx="14" fill="#1c1418" fill-opacity="0.45"/>
+    </g>
+    <g transform="translate(730 220)">
+      <rect width="150" height="380" rx="26" fill="url(#steel)"/>
+      <rect x="18" y="290" width="114" height="72" rx="14" fill="url(#white)"/>
+      <rect x="18" y="18" width="114" height="272" rx="14" fill="#1c1418" fill-opacity="0.45"/>
+    </g>
+    <g transform="translate(920 220)" opacity="0.55">
+      <rect width="150" height="380" rx="26" fill="url(#steel)"/>
+      <rect x="18" y="18" width="114" height="344" rx="14" fill="#1c1418" fill-opacity="0.45"/>
+    </g>
+    <g transform="translate(1110 220)" opacity="0.55">
+      <rect width="150" height="380" rx="26" fill="none" stroke="#d9c7a3" stroke-width="3" stroke-dasharray="12 10"/>
+      <text x="75" y="186" text-anchor="middle" font-size="54" fill="#d9c7a3">+</text>
+      <text x="75" y="226" text-anchor="middle" font-size="17" fill="#d9c7a3">Tank kaufen</text>
+    </g>
+  </g>
+  <g font-size="18" fill="#f4ead7" text-anchor="middle">
+    <text x="235" y="636" font-weight="700" fill="#f6d477">Riesling Spätlese</text><text x="235" y="660">62 hl · reif</text>
+    <text x="425" y="636" font-weight="700">Silvaner Kabinett</text><text x="425" y="660">84 hl · reif</text>
+    <text x="615" y="636" font-weight="700">Spätburgunder</text><text x="615" y="660">40 hl · noch 4 Mon.</text>
+    <text x="805" y="636" font-weight="700">Riesling QbA</text><text x="805" y="660">28 hl · noch 1 Mon.</text>
+    <text x="995" y="636" fill="#d9c7a3">leer · 86 hl frei</text>
+  </g>
+
+  <!-- Barriquefässer -->
+  <g transform="translate(160 720)">
+    <text x="0" y="-12" font-size="20" font-weight="700" fill="#f6d477" font-family="Georgia, serif">Barrique</text>
+    <g filter="url(#soft)">
+      <g><ellipse cx="80" cy="74" rx="78" ry="64" fill="url(#oak)"/><ellipse cx="80" cy="74" rx="54" ry="44" fill="#5a3518"/><path d="M12 44 H148 M12 104 H148" stroke="#2c2622" stroke-width="7"/></g>
+      <g transform="translate(180 0)"><ellipse cx="80" cy="74" rx="78" ry="64" fill="url(#oak)"/><ellipse cx="80" cy="74" rx="54" ry="44" fill="#5a3518"/><path d="M12 44 H148 M12 104 H148" stroke="#2c2622" stroke-width="7"/></g>
+      <g transform="translate(360 0)" opacity="0.5"><ellipse cx="80" cy="74" rx="78" ry="64" fill="url(#oak)"/><ellipse cx="80" cy="74" rx="54" ry="44" fill="#5a3518"/></g>
+      <g transform="translate(540 0)" opacity="0.5"><ellipse cx="80" cy="74" rx="78" ry="64" fill="url(#oak)"/><ellipse cx="80" cy="74" rx="54" ry="44" fill="#5a3518"/></g>
+    </g>
+    <g font-size="17" fill="#f4ead7" text-anchor="middle">
+      <text x="80" y="166">Spätburgunder J. 3</text><text x="80" y="188" fill="#d9c7a3">9 hl · noch 7 Mon.</text>
+      <text x="260" y="166">Lemberger J. 3</text><text x="260" y="188" fill="#d9c7a3">9 hl · noch 7 Mon.</text>
+      <text x="530" y="166" fill="#d9c7a3">22 hl frei</text>
+    </g>
+  </g>
+
+  <!-- Blättern statt scrollen -->
+  <g transform="translate(1040 1000)" font-size="17" fill="#d9c7a3">
+    <text x="0" y="24">Chargen 1–5 von 5</text>
+    <g transform="translate(200 0)"><rect width="44" height="38" rx="10" fill="#f4ead7" fill-opacity="0.08"/><path d="M27 10 l-10 9 10 9" fill="none" stroke="#8a7d6a" stroke-width="3"/></g>
+    <g transform="translate(252 0)"><rect width="44" height="38" rx="10" fill="#f4ead7" fill-opacity="0.08"/><path d="M17 10 l10 9 -10 9" fill="none" stroke="#8a7d6a" stroke-width="3"/></g>
+  </g>
+
+  <!-- Inspektor rechts: Details und Aktionen der gewählten Charge -->
+  <g filter="url(#soft)">
+    <rect x="1372" y="112" width="524" height="944" rx="22" fill="url(#card)"/>
+  </g>
+  <g fill="#3a1d24">
+    <text x="1404" y="168" font-size="32" font-weight="700" font-family="Georgia, serif">Riesling Spätlese</text>
+    <text x="1404" y="200" font-size="19" fill="#6a4a2a">Jahrgang Jahr 3 · Hauslage · Edelstahltank</text>
+
+    <!-- Güte-Ring -->
+    <g transform="translate(1472 300)">
+      <circle r="56" fill="none" stroke="#d9c7a3" stroke-width="14"/>
+      <circle r="56" fill="none" stroke="#8e2440" stroke-width="14" stroke-dasharray="288 352" transform="rotate(-90)" stroke-linecap="round"/>
+      <text y="12" text-anchor="middle" font-size="36" font-weight="700">82</text>
+      <text y="92" text-anchor="middle" font-size="17" fill="#6a4a2a">Güte</text>
+    </g>
+    <g font-size="20">
+      <text x="1580" y="262" fill="#6a4a2a">Mostgewicht</text><text x="1864" y="262" text-anchor="end" font-weight="700">86 °Oe</text>
+      <text x="1580" y="298" fill="#6a4a2a">Menge</text><text x="1864" y="298" text-anchor="end" font-weight="700">62 hl · 8.246 Fl.</text>
+      <text x="1580" y="334" fill="#6a4a2a">Markttrend</text><text x="1864" y="334" text-anchor="end" font-weight="700" fill="#4d7a2a">▲ 118 %</text>
+      <text x="1580" y="370" fill="#6a4a2a">Wert ab Hof</text><text x="1864" y="370" text-anchor="end" font-weight="700">≈ 71.000 €</text>
+    </g>
+    <path d="M1404 420 H1864" stroke="#d9c7a3" stroke-width="2"/>
+
+    <!-- Menge wählen: Schieber statt Texteingabe -->
+    <text x="1404" y="462" font-size="20" font-weight="700">Menge für die Aktion</text>
+    <rect x="1404" y="486" width="460" height="12" rx="6" fill="#d9c7a3"/>
+    <rect x="1404" y="486" width="300" height="12" rx="6" fill="#8e2440"/>
+    <circle cx="1704" cy="492" r="17" fill="#8e2440" stroke="#fbf4e4" stroke-width="4"/>
+    <text x="1404" y="536" font-size="18" fill="#6a4a2a">40 hl von 62 hl</text>
+    <g font-size="17" font-weight="600" text-anchor="middle">
+      <rect x="1636" y="514" width="70" height="34" rx="17" fill="#d9c7a3"/><text x="1671" y="537">¼</text>
+      <rect x="1714" y="514" width="70" height="34" rx="17" fill="#d9c7a3"/><text x="1749" y="537">½</text>
+      <rect x="1792" y="514" width="72" height="34" rx="17" fill="#d9c7a3"/><text x="1828" y="537">alles</text>
+    </g>
+
+    <!-- Aktionen mit Vorschau "Was passiert, wenn…" -->
+    <g font-size="21" font-weight="700">
+      <g transform="translate(1404 584)">
+        <rect width="460" height="84" rx="16" fill="#8e2440"/>
+        <text x="24" y="36" fill="#fff6e6">Abfüllen</text>
+        <text x="24" y="64" font-size="17" font-weight="400" fill="#f0cfd6">5.320 Flaschen · kostet 3.192 €</text>
+      </g>
+      <g transform="translate(1404 680)">
+        <rect width="460" height="84" rx="16" fill="none" stroke="#8e2440" stroke-width="3"/>
+        <text x="24" y="36">Als Fasswein verkaufen</text>
+        <text x="24" y="64" font-size="17" font-weight="400" fill="#6a4a2a">sofort + 9.840 € · keine Punkte</text>
+      </g>
+      <g transform="translate(1404 776)">
+        <rect width="460" height="84" rx="16" fill="none" stroke="#8e2440" stroke-width="3"/>
+        <text x="24" y="36">Sekt ansetzen</text>
+        <text x="24" y="64" font-size="17" font-weight="400" fill="#6a4a2a">9 Monate Reife · + 3 Güte · 8.512 €</text>
+      </g>
+      <g transform="translate(1404 872)" opacity="0.5">
+        <rect width="460" height="84" rx="16" fill="none" stroke="#6a4a2a" stroke-width="3" stroke-dasharray="10 8"/>
+        <text x="24" y="36">Ins Barrique umlagern</text>
+        <text x="24" y="64" font-size="17" font-weight="400" fill="#6a4a2a">Kellermeister ohne Barrique-Fähigkeit</text>
+      </g>
+    </g>
+    <text x="1404" y="1004" font-size="17" fill="#6a4a2a">Mehr unter „…“: Federweißer, Panschen</text>
+    <g transform="translate(1808 978)"><rect width="56" height="40" rx="12" fill="#d9c7a3"/><text x="28" y="27" text-anchor="middle" font-size="22" font-weight="700">…</text></g>
+  </g>
+</svg>

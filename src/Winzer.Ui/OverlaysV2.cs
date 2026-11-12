@@ -1,0 +1,367 @@
+using DrawnUi.Draw;
+using SkiaSharp;
+using Winzer.Engine;
+using Winzer.Engine.Data;
+using Winzer.Presentation;
+
+namespace Winzer.Ui;
+
+/// <summary>Bildschirme der erweiterten Regeln: Gutsplanung (Ziele, Ausbau, Preise), Jahresrückblick, Prämierung.</summary>
+public static class OverlaysV2
+{
+    static readonly Color Panel = Theme.C("#f21c1418");
+    static readonly Color Tile = Theme.C("#1af4ead7");
+
+    static SkiaShape Frame(GameSession session, string title, string subtitle, out Action close)
+    {
+        var closeAction = () => session.Nav.Show(Overlay.None);
+        close = closeAction;
+        var card = Kit.Box(210, 96, 1500, 888, Panel, 26, Theme.GlassLine, 2, shadow: true);
+        card.Tap(() => { });
+        card.With(Kit.Text(title, 48, 30, 1000, 54, 40, Theme.Gold, bold: true, serif: true));
+        card.With(Kit.Text(subtitle, 48, 86, 1300, 30, 20, Theme.CreamSoft));
+        card.With(Kit.IconButton("✕", 1424, 28, 48, closeAction));
+        return card;
+    }
+
+    static SkiaControl Progress(double x, double y, double w, double value, double target, Color color)
+    {
+        var share = target <= 0 ? 0 : Math.Clamp(value / target, 0, 1);
+        return Kit.Box(x, y, w, 12, Theme.GlassLine, 6).With(Kit.Box(0, 0, Math.Max(12, w * share), 12, color, 6));
+    }
+
+    static string Number(double value) => Util.FormatNumber(Math.Max(0, value), value % 1 == 0 ? 0 : 1);
+
+    // ---- Gutsplanung ----
+
+    public static SkiaControl Plan(GameSession session)
+    {
+        var back = Overlays.Backdrop(onTap: () => session.Nav.Show(Overlay.None));
+        var card = Frame(session, "Gutsplanung", "Wohin soll das Weingut? Ziele für dieses Jahr, Fernziele, Ausbau und Preise.", out _);
+        var tab = Math.Clamp(session.Nav.OverlayTab, 0, 2);
+        var player = session.Player;
+        var open = (player.Goal is null && player.GoalOffers.Count > 0 ? 1 : 0) + (player.Ambitions.Count < RulesV2.AmbitionCount ? 1 : 0);
+        card.With(Kit.Tabs(48, 132, ["Ziele & Ambitionen", "Ausbau & Stiftung", "Preise"], tab, session.Nav.SetOverlayTab, [open, 0, 0]));
+        card.With(tab switch
+        {
+            1 => Buildings(session),
+            2 => Prices(session),
+            _ => Goals(session),
+        });
+        return back.With(card);
+    }
+
+    static SkiaControl Goals(GameSession session)
+    {
+        var state = session.State;
+        var player = session.Player;
+        var layer = Kit.Layer(48, 204, 1404, 660);
+
+        // Links: Jahresziel
+        layer.With(Kit.Text($"Jahresziel {state.Year}", 0, 0, 560, 36, 26, Theme.Cream, bold: true, serif: true));
+        if (player.Goal is null && player.GoalOffers.Count > 0)
+        {
+            layer.With(Kit.Text("Wähle eines. Erreichst du es bis Dezember, gibt es Punkte und Ansehen.", 0, 38, 560, 28, 17, Theme.CreamSoft));
+            var y = 80.0;
+            foreach (var id in player.GoalOffers)
+            {
+                if (RulesV2.Goal(id) is not { } goal) continue;
+                var tile = Kit.Box(0, y, 560, 150, Tile, 16);
+                tile.With(Kit.Text(goal.Title, 24, 16, 380, 34, 24, Theme.Gold, bold: true));
+                tile.With(Kit.Text($"+{Util.JsNumber(goal.Points)} Punkte", 400, 20, 140, 28, 19, Theme.Cream, bold: true, align: Align.End));
+                tile.With(Kit.Text(goal.Text(state, player), 24, 54, 512, 50, 17, Theme.Cream, maxLines: 2));
+                tile.With(Kit.Button("Dieses Ziel wählen", 24, 100, 240, 40, () => session.Run(new GameAction.ChooseGoal(goal.Id)), ButtonKind.Gold,
+                    problem: session.Problem(new GameAction.ChooseGoal(goal.Id)), fontSize: 17, align: Align.Center));
+                layer.With(tile);
+                y += 166;
+            }
+        }
+        else if (RulesV2.Goal(player.Goal) is { } goal)
+        {
+            var (value, target) = goal.Progress(state, player);
+            var done = value >= target;
+            var tile = Kit.Box(0, 56, 560, 220, Tile, 16);
+            tile.With(Kit.Text(goal.Title, 24, 20, 380, 36, 26, Theme.Gold, bold: true));
+            tile.With(Kit.Text($"+{Util.JsNumber(goal.Points)} Punkte", 400, 24, 140, 28, 19, Theme.Cream, bold: true, align: Align.End));
+            tile.With(Kit.Text(goal.Text(state, player), 24, 66, 512, 54, 18, Theme.Cream, maxLines: 2));
+            tile.With(Progress(24, 136, 512, value, target, done ? Theme.GoodLight : Theme.Gold));
+            tile.With(Kit.Text(done ? "Erreicht – die Punkte gibt es im Dezember, wenn es so bleibt." : $"Stand: {Number(value)} von {Number(target)}",
+                24, 160, 512, 28, 17, done ? Theme.GoodLight : Theme.CreamSoft));
+            layer.With(tile);
+            if (player.Review is { } review)
+            {
+                layer.With(Kit.Button($"Rückblick auf Jahr {review.Year} ansehen", 0, 300, 360, 52, () => session.Nav.Show(Overlay.Review), ButtonKind.Dark, fontSize: 18, align: Align.Center));
+            }
+        }
+        else
+        {
+            layer.With(Kit.Text("Im Januar stehen wieder drei Ziele zur Wahl.", 0, 56, 560, 28, 18, Theme.CreamSoft));
+        }
+
+        // Rechts: Ambitionen
+        var choosing = player.Ambitions.Count < RulesV2.AmbitionCount;
+        layer.With(Kit.Text("Ambitionen", 620, 0, 500, 36, 26, Theme.Cream, bold: true, serif: true));
+        layer.With(Kit.Text(choosing
+            ? $"Wähle {RulesV2.AmbitionCount} geheime Fernziele ({player.Ambitions.Count} gewählt). Jedes bringt einmalig {Util.JsNumber(RulesV2.AmbitionPoints)} Punkte."
+            : $"Deine geheimen Fernziele – die Mitspieler kennen sie nicht. Je {Util.JsNumber(RulesV2.AmbitionPoints)} Punkte.",
+            620, 38, 784, 28, 17, Theme.CreamSoft));
+        var shown = choosing ? RulesV2.Ambitions.ToList() : RulesV2.Ambitions.Where(a => player.Ambitions.Contains(a.Id)).ToList();
+        for (var i = 0; i < shown.Count; i++)
+        {
+            var ambition = shown[i];
+            var chosen = player.Ambitions.Contains(ambition.Id);
+            var done = player.AmbitionsDone.Contains(ambition.Id);
+            var x = 620 + (i % 2) * 400;
+            var y = 80 + (i / 2) * (choosing ? 190 : 250);
+            var height = choosing ? 174 : 230;
+            var tile = Kit.Box(x, y, 384, height, chosen ? Theme.C("#33f6d477") : Tile, 16, chosen ? Theme.Gold : null, 2);
+            tile.With(Kit.Text(ambition.Icon, 20, 16, 50, 44, 32, Theme.Cream));
+            tile.With(Kit.Text(ambition.Name, 76, 20, 290, 32, 22, Theme.Gold, bold: true));
+            tile.With(Kit.Text(ambition.Text, 20, 66, 344, 50, 16, Theme.Cream, maxLines: 2));
+            if (choosing)
+            {
+                if (chosen) tile.With(Kit.Text("gewählt", 20, 128, 344, 26, 17, Theme.Gold, bold: true));
+                else tile.With(Kit.Button("Wählen", 20, 122, 160, 40, () => session.Run(new GameAction.ChooseAmbition(ambition.Id)), ButtonKind.Gold, fontSize: 17, align: Align.Center));
+            }
+            else
+            {
+                var (value, target) = ambition.Progress(session.State, player);
+                tile.With(Progress(20, 138, 344, done ? target : value, target, done ? Theme.GoodLight : Theme.Gold));
+                tile.With(Kit.Text(done ? "Erfüllt!" : player.Tainted && ambition.Id == "saubermann" ? "Verspielt." : $"Stand: {Number(value)} von {Number(target)}",
+                    20, 162, 344, 28, 17, done ? Theme.GoodLight : Theme.CreamSoft, bold: done));
+            }
+            layer.With(tile);
+        }
+        return layer;
+    }
+
+    static SkiaControl Buildings(GameSession session)
+    {
+        var player = session.Player;
+        var layer = Kit.Layer(48, 204, 1404, 660);
+        layer.With(Kit.Text("Ausbau des Guts", 0, 0, 800, 36, 26, Theme.Cream, bold: true, serif: true));
+        layer.With(Kit.Text("Große Vorhaben für volle Kassen. Jeder Ausbau wirkt dauerhaft.", 0, 38, 900, 28, 17, Theme.CreamSoft));
+        for (var i = 0; i < RulesV2.Buildings.Length; i++)
+        {
+            var building = RulesV2.Buildings[i];
+            var owned = player.Buildings.Contains(building.Id);
+            var tile = Kit.Box((i % 2) * 468, 80 + (i / 2) * 250, 452, 234, owned ? Theme.C("#33f6d477") : Tile, 16, owned ? Theme.Gold : null, 2);
+            tile.With(Kit.Text(building.Icon, 22, 18, 56, 48, 36, Theme.Cream));
+            tile.With(Kit.Text(building.Name, 84, 22, 350, 34, 24, Theme.Gold, bold: true));
+            tile.With(Kit.Text(building.Text, 22, 74, 408, 52, 17, Theme.Cream, maxLines: 2));
+            var costs = Util.FormatEuro(building.Cost) + (building.MonthlyCost > 0 ? $" · {Util.FormatEuro(building.MonthlyCost)} im Monat" : "");
+            tile.With(Kit.Text(costs, 22, 132, 408, 28, 18, Theme.CreamSoft, bold: true));
+            if (owned) tile.With(Kit.Text("steht", 22, 180, 408, 28, 19, Theme.Gold, bold: true));
+            else
+            {
+                var action = new GameAction.Construct(building.Id);
+                tile.With(Kit.Button("Bauen", 22, 168, 408, 52, () => session.Run(action), ButtonKind.Gold, problem: session.Problem(action), fontSize: 19));
+            }
+            layer.With(tile);
+        }
+
+        // Stiftung
+        var cost = RulesV2.DonationCost(player);
+        var donate = new GameAction.Donate();
+        var gift = Kit.Box(964, 80, 440, 484, Tile, 16);
+        gift.With(Kit.Text("🏛️", 24, 20, 60, 52, 38, Theme.Cream));
+        gift.With(Kit.Text("Stiftung Weinkultur", 90, 26, 330, 36, 24, Theme.Gold, bold: true));
+        gift.With(Kit.Text("Wer hat, der gibt: Eine Spende für Lehrpfad, Museum und Nachwuchs bringt Ansehen, das bleibt.", 24, 86, 392, 80, 17, Theme.Cream, maxLines: 3));
+        gift.With(Kit.Row("Nächste Spende", Util.FormatEuro(cost), 24, 190, 392, Theme.Cream));
+        gift.With(Kit.Row("Bringt", $"+{Util.JsNumber(RulesV2.DonationPoints)} Punkte", 24, 228, 392, Theme.Cream));
+        gift.With(Kit.Row("Bisher gespendet", $"{player.Donations} ×", 24, 266, 392, Theme.Cream));
+        gift.With(Kit.Text("Jede weitere Spende kostet ein Viertel mehr.", 24, 312, 392, 28, 16, Theme.CreamSoft));
+        gift.With(Kit.Button("Spenden", 24, 380, 392, 72, () => session.Run(donate), ButtonKind.Gold, $"{Util.FormatEuro(cost)} für {Util.JsNumber(RulesV2.DonationPoints)} Punkte", session.Problem(donate), 22));
+        layer.With(gift);
+        return layer;
+    }
+
+    static SkiaControl Prices(GameSession session)
+    {
+        var state = session.State;
+        var player = session.Player;
+        var layer = Kit.Layer(48, 204, 1404, 660);
+        layer.With(Kit.Text("Preise ab Hof", 0, 0, 800, 36, 26, Theme.Cream, bold: true, serif: true));
+        layer.With(Kit.Text("Dein Aufschlag auf den Richtpreis für Hofladen und Online-Shop. Teurer heißt: mehr je Flasche, aber weniger Kundschaft.",
+            0, 38, 1300, 28, 17, Theme.CreamSoft));
+
+        // Stufen von −20 % bis +40 %
+        var x = 0.0;
+        for (var step = -4; step <= 8; step++)
+        {
+            var level = step * 0.05;
+            var on = Math.Abs(player.PriceLevel - level) < 0.001;
+            var label = step == 0 ? "Richtpreis" : $"{(step > 0 ? "+" : "−")}{Math.Abs(step * 5)} %";
+            var width = step == 0 ? 150.0 : 92;
+            var chip = on
+                ? Kit.Box(x, 96, width, 64, radius: 14, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
+                : Kit.Box(x, 96, width, 64, Tile, 14);
+            chip.With(Kit.Text(label, 0, 18, width, 30, 20, on ? Theme.Ink : Theme.Cream, bold: true, align: Align.Center));
+            var action = new GameAction.SetPriceLevel(level);
+            chip.Tap(() => session.Run(action));
+            layer.With(chip);
+            x += width + 10;
+        }
+
+        var baseDemand = Market.MonthlyDemand(player);
+        var demand = RulesV2.DirectDemand(state, player);
+        var factor = RulesV2.DirectPriceFactor(state, player);
+        var stock = player.Bottles.Where(l => l.MonthsUntilReady == 0).Sum(l => l.Bottles);
+        var tile = Kit.Box(0, 200, 680, 400, Tile, 16);
+        tile.With(Kit.Text("Was das gerade bedeutet", 28, 22, 600, 34, 22, Theme.Gold, bold: true));
+        tile.With(Kit.Row("Kundschaft beim Richtpreis", $"{Util.FormatNumber(baseDemand)} Fl. im Monat", 28, 76, 624, Theme.Cream));
+        tile.With(Kit.Row("Kundschaft bei deinem Preis", $"{Util.FormatNumber(demand)} Fl. im Monat", 28, 118, 624, demand < baseDemand ? Theme.Warn : Theme.GoodLight));
+        tile.With(Kit.Row("Erlös je Flasche", $"{Js.Round(factor * 100)} % des Richtpreises", 28, 160, 624, Theme.Cream));
+        tile.With(Kit.Row("Umsatz gegenüber Richtpreis", $"{Js.Round(demand / Math.Max(1, baseDemand) * factor * 100)} %", 28, 202, 624, Theme.Cream));
+        tile.With(Kit.Row("Verkaufsfertiger Vorrat", $"{Util.FormatNumber(stock)} Fl.", 28, 244, 624, Theme.Cream));
+        var months = demand > 0 ? stock / demand : 0;
+        tile.With(Kit.Text(stock <= 0 ? "Kein verkaufsfertiger Wein im Lager."
+            : months > 8 ? $"Der Vorrat reicht für {Util.FormatNumber(months, 0)} Monate – ein niedrigerer Preis räumt das Lager."
+            : months < 2 ? "Der Vorrat ist knapp – ein höherer Preis holt mehr aus jeder Flasche."
+            : $"Der Vorrat reicht für etwa {Util.FormatNumber(months, 0)} Monate.", 28, 300, 624, 60, 18, Theme.CreamSoft, maxLines: 2));
+        layer.With(tile);
+
+        var info = Kit.Box(720, 200, 684, 400, Tile, 16);
+        info.With(Kit.Text("Gut zu wissen", 28, 22, 600, 34, 22, Theme.Gold, bold: true));
+        string[] lines =
+        [
+            "Bekannte Weingüter verlieren bei gleichem Aufschlag weniger Kundschaft – Medaillen machen Preise möglich.",
+            "Der Aufschlag gilt nur ab Hof und online. Großhandel, Export und Aufträge zahlen ihre eigenen Preise.",
+            "Was im Monat nicht verkauft wird, bleibt im Lager und bindet Geld. Vor der Lese sollte Platz sein.",
+            player.Buildings.Contains("schaenke") ? "Deine Gutsschänke bringt ein Viertel mehr Kundschaft." : "Eine Gutsschänke (Ausbau) bringt ein Viertel mehr Kundschaft.",
+        ];
+        for (var i = 0; i < lines.Length; i++)
+        {
+            info.With(Kit.Box(28, 84 + i * 76, 10, 10, Theme.Gold, 5));
+            info.With(Kit.Text(lines[i], 52, 72 + i * 76, 604, 64, 17, Theme.Cream, maxLines: 3));
+        }
+        layer.With(info);
+        return layer;
+    }
+
+    // ---- Jahresrückblick ----
+
+    public static SkiaControl Review(GameSession session)
+    {
+        var review = session.Player.Review!;
+        var back = Overlays.Backdrop(onTap: () => session.Nav.Show(Overlay.None));
+        var card = Kit.Card(460, 130, 1000, 820, 26);
+        card.Tap(() => { });
+        card.With(Kit.Box(0, 0, 1000, 14, Theme.Wine, 7));
+        card.With(Kit.Text($"Rückblick auf Jahr {review.Year}", 56, 48, 888, 60, 44, Theme.Ink, bold: true, serif: true));
+        card.With(Kit.Text(session.Player.Name, 56, 110, 888, 30, 21, Theme.InkSoft));
+
+        // Jahrgangsnote als Sterne
+        card.With(Kit.Text("Der Jahrgang", 56, 170, 400, 30, 20, Theme.InkSoft));
+        card.With(Kit.Paint(56, 204, 300, 56, (c, w, h) =>
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                using var p = Draw.Fill(i < review.VintageStars ? Theme.SkGoldDark : SKColor.Parse("#d9c7a3"));
+                c.Save();
+                c.Translate(i * 58, 0);
+                c.Scale(1.75f);
+                Draw.Path(c, "M15 1 l4.5 9.5 10.5 1.3 -7.7 7.2 2 10.3 -9.3 -5.1 -9.3 5.1 2 -10.3 -7.7 -7.2 10.5 -1.3 Z", p);
+                c.Restore();
+            }
+        }));
+        string[] notes = ["", "ein schwieriges Jahr", "ein mäßiges Jahr", "ein ordentliches Jahr", "ein sehr gutes Jahr", "ein Jahrhundertjahrgang"];
+        card.With(Kit.Text(notes[Math.Clamp(review.VintageStars, 1, 5)], 380, 214, 560, 36, 26, Theme.Ink, serif: true));
+
+        // Jahresziel
+        var goal = Kit.Box(56, 290, 888, 110, review.GoalReached ? Theme.C("#337dbb6a") : Theme.C("#33d9c7a3"), 16);
+        goal.With(Kit.Text("Jahresziel", 28, 14, 400, 26, 18, Theme.InkSoft));
+        goal.With(Kit.Text(review.GoalText, 28, 42, 560, 40, 28, Theme.Ink, bold: true, serif: true));
+        goal.With(Kit.Text(review.GoalReached ? $"erreicht · +{Util.JsNumber(review.GoalPoints)} Punkte" : "verfehlt", 560, 40, 300, 40, 24,
+            review.GoalReached ? Theme.Good : Theme.Alert, bold: true, align: Align.End));
+        card.With(goal);
+
+        var y = 440.0;
+        void Line(string label, string value, Color? color = null)
+        {
+            card.With(Kit.Row(label, value, 56, y, 888, color, 24));
+            y += 52;
+        }
+        Line("Punkte in diesem Jahr", $"+{Util.FormatNumber(review.PointsGained)}");
+        Line("Reinvermögen", $"{(review.NetWorthChange >= 0 ? "+" : "−")}{Util.FormatEuro(Math.Abs(review.NetWorthChange))}", review.NetWorthChange >= 0 ? Theme.Good : Theme.Alert);
+        Line("Verkaufte Flaschen", Util.FormatNumber(review.BottlesSold));
+        Line("Medaillen", review.Medals.ToString());
+        if (session.State.Players.Count > 1) Line("Platz in der Rangliste", $"{review.Rank} von {session.State.Players.Count}");
+
+        card.With(Kit.Button("Auf ins neue Jahr", 660, 724, 284, 64, () => session.Nav.Show(Overlay.None), ButtonKind.Primary, fontSize: 24, align: Align.Center));
+        return back.With(card);
+    }
+
+    // ---- Prämierung ----
+
+    public static SkiaControl Show(GameSession session)
+    {
+        var show = session.State.LastShow!;
+        var me = session.Player.Id;
+        var competition = Economy.Competitions[show.Competition];
+        var back = Overlays.Backdrop(onTap: () => session.Nav.Show(Overlay.None));
+        var card = Frame(session, competition.Name, $"Jahr {show.Year} · Drei Juroren verkosten blind. Es zählt das Mittel ihrer Noten.", out var close);
+
+        // Bühne mit Scheinwerfern
+        card.With(Kit.Paint(0, 124, 1500, 80, (c, w, h) =>
+        {
+            using var light = new SKPaint
+            {
+                IsAntialias = true,
+                Shader = SKShader.CreateLinearGradient(new SKPoint(0, 0), new SKPoint(0, h), [Theme.SkGold.WithAlpha(70), Theme.SkGold.WithAlpha(0)], SKShaderTileMode.Clamp),
+            };
+            Draw.Path(c, $"M250 0 L150 {h} L450 {h} Z M750 0 L600 {h} L900 {h} Z M1250 0 L1050 {h} L1350 {h} Z", light);
+        }));
+
+        // Kopfzeile der Wertungstafel
+        var top = 214.0;
+        string[] heads = ["Weingut", "Wein", "Juror 1", "Juror 2", "Juror 3", "Wertung", "Ergebnis"];
+        double[] cols = [48, 348, 800, 910, 1020, 1140, 1270];
+        for (var i = 0; i < heads.Length; i++) card.With(Kit.Text(heads[i], cols[i], top, 200, 26, 17, Theme.CreamSoft, bold: true));
+
+        // Eigene Weine zuerst, dann nach Wertung
+        var entries = show.Entries.OrderByDescending(e => e.PlayerId == me).ThenByDescending(e => e.Score).ToList();
+        const int perPage = 8;
+        var pages = Math.Max(1, (int)Math.Ceiling(entries.Count / (double)perPage));
+        var page = session.Nav.Page("show", pages);
+        var y = top + 36;
+        foreach (var entry in entries.Skip(page * perPage).Take(perPage))
+        {
+            var mine = entry.PlayerId == me;
+            var row = Kit.Box(32, y, 1436, 64, mine ? Theme.C("#33f6d477") : Tile, 12, mine ? Theme.Gold : null, 1.5);
+            row.With(Kit.Text(entry.PlayerName, 16, 18, 290, 30, 19, Theme.Cream, bold: mine));
+            row.With(Kit.Text(entry.Wine, 316, 18, 440, 30, 19, Theme.Cream));
+            for (var j = 0; j < entry.Jury.Count && j < 3; j++)
+            {
+                row.With(Kit.Text(Util.FormatNumber(entry.Jury[j], 1), 768 + j * 110, 16, 90, 32, 22, Theme.CreamSoft, align: Align.Start));
+            }
+            row.With(Kit.Text(Util.FormatNumber(entry.Score, 1), 1108, 12, 110, 38, 28, Theme.Gold, bold: true, serif: true));
+            if (entry.Medal is { } medal)
+            {
+                var color = medal == Medal.Gold ? "#f6d477" : medal == Medal.Silber ? "#d7dee4" : "#c98a52";
+                row.With(Kit.Paint(1238, 12, 40, 40, (c, w, h) =>
+                {
+                    using var ribbon = Draw.Fill(Theme.SkWine);
+                    Draw.Path(c, "M12 22 L8 40 L20 33 L32 40 L28 22 Z", ribbon);
+                    using var disc = Draw.Fill(color);
+                    c.DrawCircle(20, 16, 14, disc);
+                    using var rim = Draw.Stroke(Theme.SkNight.WithAlpha(90), 1.5f);
+                    c.DrawCircle(20, 16, 10, rim);
+                }));
+                row.With(Kit.Text($"{Economy.MedalNames[medal]} · +{Util.JsNumber(entry.Points)}", 1284, 18, 150, 30, 18, Theme.Cream, bold: true));
+            }
+            else
+            {
+                row.With(Kit.Text("ohne Medaille", 1238, 18, 190, 30, 18, Theme.CreamSoft));
+            }
+            card.With(row);
+            y += 72;
+        }
+        var thresholds = competition.Thresholds;
+        card.With(Kit.Text($"Gold ab {Util.JsNumber(thresholds[Medal.Gold])} · Silber ab {Util.JsNumber(thresholds[Medal.Silber])} · Bronze ab {Util.JsNumber(thresholds[Medal.Bronze])}",
+            48, 838, 700, 28, 18, Theme.CreamSoft));
+        if (pages > 1) card.With(Kit.Pager(760, 830, 300, page, pages, p => session.Nav.SetPage("show", p)));
+        card.With(Kit.Button("Weiter", 1216, 812, 236, 56, close, ButtonKind.Gold, fontSize: 22, align: Align.Center));
+        return back.With(card);
+    }
+}

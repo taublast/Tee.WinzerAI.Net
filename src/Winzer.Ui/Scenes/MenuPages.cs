@@ -1,0 +1,189 @@
+using DrawnUi.Draw;
+using Winzer.Engine;
+using Winzer.Engine.Data;
+using Winzer.Presentation;
+
+namespace Winzer.Ui.Scenes;
+
+/// <summary>Weitere Seiten des Hauptmenüs: Spielstände, Tages-Challenge, Lizenzhinweis.</summary>
+internal static class MenuPages
+{
+    // ---- Spielstände ----
+
+    public static string SlotTitle(SaveSlot slot)
+    {
+        var title = string.Join(" & ", slot.State.Players.Where(p => p.Ai is null).Select(p => p.Name));
+        return title.Length > 0 ? title : "Spielstand";
+    }
+
+    public static string SlotWhen(GameState state) =>
+        $"{Game.MonthNames[state.Month - 1]}, Jahr {state.Year}{(state.YearLimit is > 0 ? $" von {state.YearLimit}" : "")}";
+
+    static string SlotIcon(GameState state) =>
+        state.Challenge is not null ? "🎯" : Rules.HasPointTarget(state) ? "🍇" : "∞";
+
+    static string SavedAtText(DateTime savedAt) =>
+        savedAt.Date == DateTime.Today ? $"heute, {savedAt:HH:mm}" : $"{savedAt:d.M.yyyy}, {savedAt:HH:mm}";
+
+    public static void SavesPage(SkiaLayout layer, AppHost app, MenuSetup setup)
+    {
+        MenuUi.Header(layer, "Spielstände", "Jede Partie wird nach jedem Zug automatisch gespeichert", 1100);
+        var saves = setup.SavesOf(app);
+        const int perPage = 6;
+        var pages = Math.Max(1, (int)Math.Ceiling(saves.Count / (double)perPage));
+        var page = Math.Clamp(setup.SavesPage, 0, pages - 1);
+
+        if (saves.Count == 0)
+        {
+            var empty = Kit.Glass(460, 400, 1000, 220, 24);
+            empty.With(Kit.Text("Noch keine Spielstände vorhanden.", 0, 56, 1000, 50, 36, Theme.Cream, bold: true, serif: true, align: Align.Center));
+            empty.With(Kit.Text("Starte ein Spiel – es erscheint dann hier.", 0, 118, 1000, 36, 24, Theme.CreamSoft, align: Align.Center));
+            layer.With(empty);
+        }
+
+        var index = 0;
+        foreach (var slot in saves.Skip(page * perPage).Take(perPage))
+        {
+            layer.With(SlotCard(app, setup, slot, MenuUi.Left + index % 3 * 576, 190 + index / 3 * 358));
+            index++;
+        }
+
+        MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home));
+        if (app.Store.Location is { } location)
+        {
+            layer.With(Kit.Text($"Ablage: {location}", 440, 986, 900, 30, 19, Theme.CreamSoft));
+        }
+        if (pages > 1)
+        {
+            layer.With(Kit.Pager(MenuUi.Right - 300, 982, 300, page, pages, p =>
+            {
+                setup.SavesPage = p;
+                setup.ConfirmDelete = null;
+                app.Notify();
+            }));
+        }
+    }
+
+    static SkiaControl SlotCard(AppHost app, MenuSetup setup, SaveSlot slot, double x, double y)
+    {
+        var state = slot.State;
+        var human = state.Players.FirstOrDefault(p => p.Ai is null) ?? state.Players[0];
+        var over = state.Finished || state.WinnerId is not null;
+        var card = Kit.Card(x, y, 548, 334, 20);
+        card.With(Kit.Box(28, 28, 72, 72, Theme.C("#248e2440"), 18)
+            .With(Kit.Text(SlotIcon(state), 0, 14, 72, 48, 34, Theme.Wine, bold: true, serif: true, align: Align.Center)));
+        card.With(Kit.Text(SlotTitle(slot), 118, 24, 404, 40, 28, Theme.Ink, bold: true, serif: true));
+        card.With(Kit.Text($"{Regions.All[human.RegionId].Name} · {SlotWhen(state)}", 118, 66, 404, 30, 20, Theme.InkSoft));
+
+        var mode = state.Challenge is not null ? $"Tages-Challenge {state.Challenge}" : Economy.Difficulties[state.Difficulty].Name;
+        var goal = Rules.HasPointTarget(state) ? $"{Util.FormatNumber(human.Points)} / {Util.FormatNumber(state.TargetPoints)}" : Util.FormatNumber(human.Points);
+        card.With(Kit.Row("Punkte", goal, 28, 122, 492, Theme.Wine, 21));
+        card.With(Kit.Row("Spielart", mode + (over ? " · beendet" : ""), 28, 160, 492, size: 21));
+        card.With(Kit.Row("Gespeichert", SavedAtText(slot.SavedAt), 28, 198, 492, size: 21));
+
+        var confirm = setup.ConfirmDelete == slot.Id;
+        if (confirm)
+        {
+            card.With(Kit.Button("Wirklich löschen", 28, 250, 300, 64, () =>
+            {
+                app.Store.Delete(slot.Id);
+                setup.Saves = null;
+                setup.ConfirmDelete = null;
+                app.Notify();
+            }, ButtonKind.Primary, fontSize: 22, align: Align.Center));
+            card.With(Kit.Button("Behalten", 344, 250, 176, 64, () =>
+            {
+                setup.ConfirmDelete = null;
+                app.Notify();
+            }, ButtonKind.Ghost, fontSize: 22, align: Align.Center));
+        }
+        else
+        {
+            card.With(Kit.Button("Laden", 28, 250, 300, 64, () => MainMenu.Start(app, setup, slot.State, slot.Id), ButtonKind.Primary, fontSize: 24, align: Align.Center));
+            card.With(Kit.Button("Löschen", 344, 250, 176, 64, () =>
+            {
+                setup.ConfirmDelete = slot.Id;
+                app.Notify();
+            }, ButtonKind.Secondary, fontSize: 22, align: Align.Center));
+        }
+        return card;
+    }
+
+    // ---- Tages-Challenge ----
+
+    public static void DailyPage(SkiaLayout layer, AppHost app, MenuSetup setup)
+    {
+        var today = Challenge.TodayKey();
+        var daily = Challenge.DailyChallenge(today);
+        var scenario = daily.Scenario;
+        var best = app.Store.GetSetting("challenge." + today);
+        MenuUi.Header(layer, "Tages-Challenge", $"{today} · für alle dieselbe Partie", 1100);
+
+        var card = Kit.Card(310, 210, 1300, 700, 24);
+        card.With(Kit.Box(0, 0, 1300, 14, Theme.Wine, 7));
+        card.With(Kit.Box(60, 64, 132, 132, Theme.C("#248e2440"), 28)
+            .With(Kit.Text(scenario.Icon, 0, 26, 132, 84, 62, Theme.Wine, align: Align.Center)));
+        card.With(Kit.Text("Szenario des Tages", 224, 66, 800, 30, 21, Theme.InkSoft));
+        card.With(Kit.Text(scenario.Name, 224, 98, 1010, 72, 52, Theme.Ink, bold: true, serif: true));
+        card.With(Kit.Text(scenario.Description, 60, 232, 1180, 110, 27, Theme.Ink, maxLines: 3));
+
+        var chips = new List<string>
+        {
+            $"📍 {Regions.All[daily.Options.Players[0].RegionId].Name}",
+            $"📅 {scenario.Years} Jahre",
+            $"🤖 {string.Join(", ", daily.Options.Players.Skip(1).Select(p => p.Name))}",
+        };
+        if (!scenario.ClimateChange) chips.Add("🌡️ ohne Klimawandel");
+        double x = 60, y = 372;
+        foreach (var text in chips)
+        {
+            var width = MenuUi.ChipWidth(text, 22);
+            if (x + width > 1240)
+            {
+                x = 60;
+                y += 62;
+            }
+            card.With(MenuUi.Chip(text, x, y, out _, size: 22));
+            x += width + 14;
+        }
+
+        card.With(Kit.Text("Gewertet werden die Punkte am Ende der vorgegebenen Jahre – gleiches Szenario, Gebiet, Wetter und dieselben Gegner für alle.",
+            60, 506, 1180, 64, 21, Theme.InkSoft, maxLines: 2));
+        card.With(Kit.Box(60, 590, 620, 72, best is null ? Theme.C("#59d9c7a3") : Theme.C("#40f6d477"), 36, best is null ? null : Theme.GoldDark, 2)
+            .With(Kit.Text(best is null ? "Noch nicht gespielt" : $"🏅 Dein Bestwert heute: {best} Punkte", 0, 20, 620, 34, 24, Theme.Ink, bold: true, align: Align.Center)));
+        card.With(Kit.Button("Challenge starten", 820, 584, 420, 84, () => MainMenu.Start(app, setup, Game.NewGame(daily.Options)), ButtonKind.Primary,
+            fontSize: 28, align: Align.Center));
+        layer.With(card);
+
+        MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home));
+    }
+
+    // ---- Lizenzhinweis ----
+
+    public static void LicensesPage(SkiaLayout layer, AppHost app)
+    {
+        MenuUi.Header(layer, "Lizenzen", "Hinweise zu fremder Software und zu den Namen im Spiel", 1100);
+        var card = Kit.Card(410, 230, 1100, 640, 24);
+        card.With(Kit.Box(0, 0, 1100, 14, Theme.Wine, 7));
+        card.With(Kit.Text("📜 Lizenzen", 60, 50, 980, 54, 40, Theme.Ink, bold: true, serif: true));
+        card.With(Kit.Text("WinzerAI nutzt quelloffene Software von Dritten. Alle Namen von Weingütern, Personen, Siegeln und Prämierungen im Spiel sind frei erfunden.",
+            60, 122, 980, 76, 24, Theme.Ink, maxLines: 2));
+        (string Name, string Text)[] parts =
+        [
+            (".NET", "Laufzeit und Bibliotheken · MIT-Lizenz"),
+            ("SkiaSharp", "Zeichenbibliothek · MIT-Lizenz"),
+            ("Skia", "Grafikkern · BSD-3-Clause-Lizenz"),
+            ("DrawnUi", "Gezeichnete Steuerelemente · MIT-Lizenz"),
+        ];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var row = Kit.Box(60, 226 + i * 84, 980, 72, Theme.C("#40d9c7a3"), 14);
+            row.With(Kit.Text(parts[i].Name, 24, 19, 200, 34, 24, Theme.Wine, bold: true, serif: true));
+            row.With(Kit.Text(parts[i].Text, 230, 22, 730, 30, 20, Theme.Ink));
+            card.With(row);
+        }
+        card.With(Kit.Text("Die vollständigen Lizenztexte stehen bei den jeweiligen Projekten.", 60, 574, 980, 30, 20, Theme.InkSoft));
+        layer.With(card);
+        MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home));
+    }
+}
