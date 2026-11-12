@@ -104,9 +104,52 @@ public static class Kit
         return parent;
     }
 
+    /// <summary>Wie viele Tippflächen gerade unter dem Mauszeiger liegen – das Fenster zeigt dann die Hand</summary>
+    public static int Hovering { get; private set; }
+    public static event Action? HoverChanged;
+
+    /// <summary>Vor jedem Neuaufbau: Die alten Flächen gibt es nicht mehr, also liegt auch keine mehr unter dem Zeiger.</summary>
+    public static void ResetHover()
+    {
+        if (Hovering == 0) return;
+        Hovering = 0;
+        HoverChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Macht ein Element antippbar. Unter dem Mauszeiger hellt es sich mit einem durchscheinenden Schleier und
+    /// goldenem Rand auf, damit erkennbar ist, was sich anklicken lässt.
+    /// </summary>
     public static T Tap<T>(this T control, Action action) where T : SkiaControl
     {
         control.OnTapped(_ => action());
+        if (control is SkiaLayout layout)
+        {
+            var veil = new SkiaShape
+            {
+                Type = ShapeType.Rectangle,
+                BackgroundColor = Theme.C("#2effffff"),
+                StrokeColor = Theme.C("#d9f6d477"),
+                StrokeWidth = 2 * S,
+                IsVisible = false,
+                InputTransparent = true,
+                ZIndex = 1000,
+                HorizontalOptions = LayoutOptions.Fill,
+                VerticalOptions = LayoutOptions.Fill,
+            };
+            veil.CornerRadius = layout is SkiaShape shape ? shape.CornerRadius : 10 * S;
+            layout.Children.Add(veil);
+            var over = false;
+            control.ReceivesHover = true;
+            control.OnHovered((_, on) =>
+            {
+                if (on == over) return;
+                over = on;
+                veil.IsVisible = on;
+                Hovering = Math.Max(0, Hovering + (on ? 1 : -1));
+                HoverChanged?.Invoke();
+            });
+        }
         return control;
     }
 

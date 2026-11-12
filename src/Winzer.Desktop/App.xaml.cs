@@ -25,6 +25,7 @@ public partial class App : Application
         var store = new FileSaveStore();
         var audio = new SynthAudio { Muted = store.GetSetting("muted") == "1" };
         var window = new MainWindow(new AppHost(store, audio));
+        window.FillWorkArea();
         MainWindow = window;
         window.Show();
     }
@@ -232,6 +233,17 @@ public partial class App : Application
                 session.Run(new GameAction.EndTurn());
             }
             if (!shot.KeepSummary && session.Summary is not null) session.CloseSummary();
+            // Nur fürs Bild: viele Parzellen und ein bestimmtes Wetter
+            var estate = session.Player;
+            var patterns = estate.Plots.ToList();
+            for (var i = estate.Plots.Count; i < shot.Plots; i++)
+            {
+                var extra = patterns[i % patterns.Count].Clone();
+                extra.Id = $"foto{i}";
+                extra.Name = $"{patterns[i % patterns.Count].Name} {i / patterns.Count + 1}";
+                estate.Plots.Add(extra);
+            }
+            if (shot.Weather is { } kind) session.State.LastWeather = kind;
             var waiting = session.Nav.Overlay;
             session.Nav.Go(shot.Scene, shot.Tab);
             // --overlay Auto zeigt, was von selbst erschienen wäre (Prämierung, Rückblick, Gutsplanung)
@@ -275,6 +287,14 @@ public partial class App : Application
                 if (mine) turn.Release();
             }
         }
+        if (shot.Hover is { } hover)
+        {
+            window.Topmost = true;
+            window.Activate();
+            await Task.Delay(300);
+            await window.RealHover(hover.X, hover.Y);
+            window.Topmost = false;
+        }
         window.SaveScreenshot(shot.File);
         if (app.Session is { } played)
         {
@@ -283,7 +303,7 @@ public partial class App : Application
             System.IO.File.WriteAllText(shot.File + ".txt",
                 $"szene={played.Nav.Scene} reiter={played.Nav.Tab} overlay={played.Nav.Overlay} zug={RulesV2.TurnName(played.State)} jahr={played.State.Year} " +
                 $"konto={Util.JsNumber(Math.Round(p.Money))} kredit={Util.JsNumber(p.Loan)} chargen={p.Cellar.Count} posten={p.Bottles.Count} parzellen={p.Plots.Count(x => x.Grape is not null)} " +
-                $"preis={Util.JsNumber(p.PriceLevel)} ziel={p.Goal} ambitionen={p.Ambitions.Count} fehler={played.Error}");
+                $"zeichnungen={PaintBox.Paints} preis={Util.JsNumber(p.PriceLevel)} ziel={p.Goal} ambitionen={p.Ambitions.Count} fehler={played.Error}");
         }
         Shutdown();
     }
@@ -305,6 +325,11 @@ sealed class ShotOptions
     public List<(double X, double Y)> Clicks = [];
     public int OverlayTab;
     public int Rules = 2;
+    /// <summary>Füllt das Gut für das Foto auf so viele Parzellen auf</summary>
+    public int Plots;
+    public WeatherKind? Weather;
+    /// <summary>Stelle der Entwurfsfläche, über der der echte Mauszeiger beim Foto steht</summary>
+    public (double X, double Y)? Hover;
     public double Width = 1280;
     public double Height = 720;
     public List<Action<GameSession>> Script = [];
@@ -339,6 +364,14 @@ sealed class ShotOptions
                     options.Clicks.Add((double.Parse(point[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(point[1], System.Globalization.CultureInfo.InvariantCulture)));
                     break;
                 case "--rules": options.Rules = int.Parse(value); break;
+                case "--hover":
+                {
+                    var spot = value.Split(',');
+                    options.Hover = (double.Parse(spot[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(spot[1], System.Globalization.CultureInfo.InvariantCulture));
+                    break;
+                }
+                case "--plots": options.Plots = int.Parse(value); break;
+                case "--weather": options.Weather = Json.Enum<WeatherKind>(value); break;
                 case "--size":
                     var parts = value.Split('x');
                     options.Width = double.Parse(parts[0]);

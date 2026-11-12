@@ -28,6 +28,54 @@ public partial class MainWindow : Window
         Root.SizeChanged += (_, _) => ScheduleRebuild();
         PreviewKeyDown += OnKey;
         Loaded += (_, _) => Rebuild();
+        Kit.HoverChanged += () => Cursor = Kit.Hovering > 0 ? Cursors.Hand : Cursors.Arrow;
+
+        // Bewegte Bilder (Wetter): nur neu zeichnen, solange etwas Bewegtes auf dem Schirm ist und das Fenster zu sehen ist
+        // Hintergrund-Priorität: Mit höherer Priorität drängelt sich die Anforderung vor das Zeichnen der Fläche selbst,
+        // und nach einem Neuaufbau bleiben Bilder aus (im Selbstspiel gemessen: ein Zwölftel der Zeichenvorgänge).
+        var frames = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(50) };
+        frames.Tick += (_, _) =>
+        {
+            if (!Anim.Take() || !IsVisible || WindowState == WindowState.Minimized) return;
+            // Im Hintergrund ruht das Bild; der nächste Neuaufbau oder Mauszeiger bringt es wieder in Gang
+            if (!IsActive && !Topmost) return;
+            surface.Canvas?.Update();
+            surface.InvalidateVisual();
+        };
+        frames.Start();
+        Activated += (_, _) =>
+        {
+            surface.Canvas?.Update();
+            surface.InvalidateVisual();
+        };
+        Closed += (_, _) => frames.Stop();
+    }
+
+    /// <summary>
+    /// Für das normale Spiel: ohne Titelleiste und so groß wie der Arbeitsbereich des Bildschirms – die Taskleiste
+    /// bleibt sichtbar. (Ein rahmenloses Fenster im Zustand „maximiert“ würde sie überdecken.)
+    /// </summary>
+    public void FillWorkArea()
+    {
+        WindowStyle = WindowStyle.None;
+        ResizeMode = ResizeMode.NoResize;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        MinWidth = 0;
+        MinHeight = 0;
+        void Fit()
+        {
+            var area = SystemParameters.WorkArea;
+            Left = area.Left;
+            Top = area.Top;
+            Width = area.Width;
+            Height = area.Height;
+        }
+        Fit();
+        // Auflösung geändert oder Taskleiste verschoben: wieder einpassen
+        SystemParameters.StaticPropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SystemParameters.WorkArea)) Fit();
+        };
     }
 
     /// <summary>Mehrere Änderungen in einem Zug führen zu einem einzigen Neuaufbau.</summary>
@@ -96,6 +144,18 @@ public partial class MainWindow : Window
         mouse_event(0x0004, 0, 0, 0, UIntPtr.Zero);
         await Task.Delay(120);
         SetCursorPos(before.X, before.Y);
+    }
+
+    /// <summary>Stellt den echten Mauszeiger auf eine Stelle der Entwurfsfläche und lässt ihn dort – für Bilder vom Hover-Effekt.</summary>
+    public async Task RealHover(double designX, double designY)
+    {
+        var scale = Math.Min(Root.ActualWidth / Kit.DesignWidth, Root.ActualHeight / Kit.DesignHeight);
+        var local = new Point((Root.ActualWidth - Kit.DesignWidth * scale) / 2 + designX * scale, (Root.ActualHeight - Kit.DesignHeight * scale) / 2 + designY * scale);
+        var screen = Root.PointToScreen(local);
+        SetCursorPos((int)screen.X - 3, (int)screen.Y);
+        await Task.Delay(80);
+        SetCursorPos((int)screen.X, (int)screen.Y);
+        await Task.Delay(500);
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]

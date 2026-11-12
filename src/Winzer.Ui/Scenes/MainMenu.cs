@@ -360,46 +360,26 @@ internal static class MenuArt
 
     static readonly (string Path, string Dark, string Light, float Angle)[] Parcels =
     [
-        ("M250 590 L560 548 L640 660 L300 700 Z", "#6b5a26", "#c9a23a", -18),
-        ("M700 548 L960 520 L1040 630 L760 664 Z", "#3f5a22", "#7d9a3a", -12),
-        ("M1160 560 L1420 570 L1460 668 L1180 660 Z", "#6a3320", "#b5562e", -24),
-        ("M1540 600 L1760 584 L1800 676 L1560 690 Z", "#4a6226", "#8aa644", -8),
-        ("M90 618 L220 596 L262 690 L120 706 Z", "#6a3320", "#b5562e", -30),
+        ("M290 612 L560 600 L620 676 L320 680 Z", "#6b5a26", "#c9a23a", -18),
+        ("M720 598 L960 580 L1030 668 L770 678 Z", "#3f5a22", "#7d9a3a", -12),
+        ("M1170 574 L1410 580 L1456 672 L1186 670 Z", "#6a3320", "#b5562e", -24),
+        ("M1546 600 L1750 588 L1796 674 L1566 680 Z", "#4a6226", "#8aa644", -8),
+        ("M96 640 L214 622 L258 684 L124 686 Z", "#6a3320", "#b5562e", -30),
     ];
 
     public static void Landscape(SKCanvas c, float w, float h, bool title)
     {
+        var t = Anim.Use();
         using (var sky = Draw.VerticalGradient(0, h, (0, "#1f2b45"), (0.2f, "#4a4366"), (0.42f, "#b8656a"), (0.62f, "#f3b871"), (1, "#f3b871")))
             c.DrawRect(0, 0, w, h, sky);
 
-        // Erste Sterne am Abendhimmel
-        using (var star = Draw.Fill(Theme.SkCream))
-        {
-            for (var i = 0; i < 46; i++)
-            {
-                star.Color = Theme.SkCream.WithAlpha((byte)(40 + i * 37 % 110));
-                c.DrawCircle((i * 337 + 71) % w, (i * 89 + 13) % 230, 1.2f + i % 3 * 0.6f, star);
-            }
-        }
+        // Erste Sterne am Abendhimmel, sie funkeln
+        WeatherFx.Stars(c, w, 230, t, 46);
 
         // Sonne knapp über den Hügeln
-        using (var glow = new SKPaint
-        {
-            IsAntialias = true,
-            Shader = SKShader.CreateRadialGradient(new SKPoint(1380, 430), 340,
-                [SKColor.Parse("#fff3c4"), SKColor.Parse("#e6ffd27a"), SKColor.Parse("#00ffd27a")], [0, 0.32f, 1], SKShaderTileMode.Clamp),
-        })
-            c.DrawCircle(1380, 430, 340, glow);
-        using (var disc = Draw.Fill("#fff0bd")) c.DrawCircle(1380, 430, 60, disc);
+        WeatherFx.Sun(c, 1380, 430, 340, 60, t, rays: false);
 
-        using (var cloud = Draw.Fill(SKColor.Parse("#ffe2c2").WithAlpha(70)))
-        {
-            c.DrawOval(420, 210, 230, 24, cloud);
-            c.DrawOval(580, 238, 160, 16, cloud);
-            c.DrawOval(1650, 250, 190, 20, cloud);
-            c.DrawOval(1120, 170, 260, 18, cloud);
-            c.DrawOval(980, 196, 150, 12, cloud);
-        }
+        WeatherFx.Clouds(c, w, t, 5, 7, SKColor.Parse("#ffe2c2").WithAlpha(70), 160, 260);
 
         // Ferner Höhenzug im Dunst, davor die Hügel mit Burg und Dorf
         using (var haze = Draw.VerticalGradient(380, 560, (0, "#a8788a"), (1, "#8a6a80")))
@@ -429,15 +409,24 @@ internal static class MenuArt
 
         using (var mid = Draw.VerticalGradient(520, 900, (0, "#8c7a45"), (1, "#5f6a35")))
             Draw.Path(c, MidHill, mid);
-        foreach (var parcel in Parcels) Parcel(c, parcel.Path, parcel.Dark, parcel.Light, parcel.Angle);
+        // Die Rebflächen liegen auf dem Hang: Nichts davon darf über die Hügelkante hinausragen
+        using (var slope = SKPath.ParseSvgPathData(MidHill))
+        {
+            c.Save();
+            c.ClipPath(slope, antialias: true);
+            foreach (var parcel in Parcels) Parcel(c, parcel.Path, parcel.Dark, parcel.Light, parcel.Angle);
+            c.Restore();
+        }
 
         // Fluss mit dem Widerschein der Sonne
         using (var river = Draw.Fill(SKColor.Parse("#c9d7e6").WithAlpha(150))) Draw.Path(c, River, river);
-        using (var shine = Draw.Stroke(SKColor.Parse("#fff3c4").WithAlpha(150), 4))
+        for (var i = 0; i < 3; i++)
         {
-            c.DrawLine(1290, 704, 1470, 696, shine);
-            c.DrawLine(1330, 716, 1440, 711, shine);
-            c.DrawLine(1362, 727, 1418, 724, shine);
+            // Der Widerschein glitzert
+            var alpha = (byte)(110 + 70 * MathF.Sin(t * 1.7f + i * 2.1f));
+            using var shine = Draw.Stroke(SKColor.Parse("#fff3c4").WithAlpha(alpha), 4);
+            var half = (90 - i * 30) * (1 + 0.08f * MathF.Sin(t * 1.1f + i));
+            c.DrawLine(1380 - half, 700 + i * 11.5f, 1380 + half, 696 + i * 11.5f, shine);
         }
 
         // Vorderer Hang mit Rebzeilen, die auf den Betrachter zulaufen
@@ -471,6 +460,7 @@ internal static class MenuArt
         }
 
         Estate(c);
+        WeatherFx.Smoke(c, 1281, 672, t);
 
         // Abdunkelung: links für die Schaltflächen, unten als Rahmen
         using (var left = Draw.HorizontalGradient(0, 1150, (0, "#eb140a0e"), (0.45f, "#a6140a0e"), (1, "#00140a0e")))

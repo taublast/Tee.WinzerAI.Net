@@ -12,18 +12,50 @@ namespace Winzer.Ui.Scenes;
 /// </summary>
 public static class EstateScene
 {
-    /// <summary>Plätze für bis zu acht Parzellen im Hang (Koordinaten der Bühne)</summary>
-    static readonly (string Path, float Cx, float Cy)[] Slots =
-    [
-        ("M138 498 L448 456 L528 568 L188 608 Z", 326, 532),
-        ("M588 456 L848 428 L928 538 L648 572 Z", 754, 500),
-        ("M1048 468 L1308 478 L1348 576 L1068 568 Z", 1194, 522),
-        ("M1428 508 L1648 492 L1688 584 L1448 598 Z", 1554, 546),
-        ("M318 368 L498 352 L538 424 L348 440 Z", 426, 396),
-        ("M738 340 L918 330 L948 398 L758 410 Z", 842, 370),
-        ("M1118 364 L1278 372 L1298 432 L1128 426 Z", 1206, 398),
-        ("M1438 388 L1578 380 L1608 448 L1458 456 Z", 1522, 418),
-    ];
+    /// <summary>So viele Parzellen zeigt der Hang; was darüber hinausgeht, steht nur in der Weinberg-Szene</summary>
+    const int MaxShown = 24;
+
+    /// <summary>Platz einer Parzelle im Hang (Koordinaten der Bühne)</summary>
+    record Slot(string Path, float Cx, float Cy, float Width, float Height, int Columns);
+
+    /// <summary>Hügelkante des Rebhangs – alle Parzellen liegen darunter</summary>
+    static string Slope(float w, float h) => FormattableString.Invariant($"M0 428 C200 380 520 408 790 390 C1090 372 1390 412 {w} 386 L{w} {h} L0 {h} Z");
+
+    /// <summary>
+    /// Verteilt die Parzellen auf den Hang zwischen Hügelkante und Fluss: wenige groß in einer Reihe, viele in bis zu
+    /// drei Reihen, die nach hinten kleiner werden. Die vorderste Reihe füllt sich zuerst.
+    /// </summary>
+    static List<Slot> Layout(int count)
+    {
+        var slots = new List<Slot>();
+        if (count <= 0) return slots;
+        var columns = count <= 4 ? count : count <= 8 ? 4 : count <= 12 ? 6 : 8;
+        var rows = (count + columns - 1) / columns;
+        (float Top, float Bottom)[] bands = rows switch
+        {
+            1 => [(452, 572)],
+            2 => [(508, 584), (434, 500)],
+            _ => [(534, 584), (482, 528), (434, 476)],
+        };
+        for (var r = 0; r < rows; r++)
+        {
+            var inRow = Math.Min(columns, count - r * columns);
+            var (top, bottom) = bands[r];
+            var height = bottom - top;
+            var cell = Math.Min(430f, 1670f * (1 - 0.07f * r) / columns);
+            var left = 905f - inRow * cell / 2;
+            var lean = height * 0.3f;
+            var gap = Math.Min(16f, cell * 0.06f);
+            for (var i = 0; i < inRow; i++)
+            {
+                var x0 = left + i * cell + gap / 2;
+                var x1 = x0 + cell - gap;
+                var path = FormattableString.Invariant($"M{x0} {top} L{x1 - lean} {top} L{x1} {bottom} L{x0 + lean} {bottom} Z");
+                slots.Add(new Slot(path, (x0 + x1) / 2, (top + bottom) / 2, cell - gap - lean, height, columns));
+            }
+        }
+        return slots;
+    }
 
     record Season(string SkyTop, string SkyMid, string SkyLow, string Far1, string Far2, string Mid1, string Mid2, string Near1, string Near2, bool Snow);
 
@@ -41,23 +73,35 @@ public static class EstateScene
         var player = session.Player;
         var scene = Kit.Layer(0, 0, Shell.StageWidth, Shell.StageHeight);
         var badges = Shell.Badges(session);
-        var shown = player.Plots.Take(Slots.Length).ToList();
+        var shown = player.Plots.Take(MaxShown).ToList();
+        var slots = Layout(shown.Count);
 
-        scene.With(Kit.Paint(0, 0, Shell.StageWidth, Shell.StageHeight, (c, w, h) => PaintPanorama(c, w, h, state, player, shown)));
+        scene.With(Kit.Paint(0, 0, Shell.StageWidth, Shell.StageHeight, (c, w, h) => PaintPanorama(c, w, h, state, player, shown, slots)));
 
-        // Parzellen: Schild und Tippfläche
+        // Parzellen: Schild und Tippfläche. Bis vier Parzellen zweizeilig, darüber einzeilig und schmaler.
         for (var i = 0; i < shown.Count; i++)
         {
             var plot = shown[i];
-            var slot = Slots[i];
-            var small = i >= 4;
-            var width = small ? 220.0 : 290.0;
+            var slot = slots[i];
             var ripe = IsHarvestable(state, plot);
+            var roomy = slots.Count <= 4;
+            // Schmale Schilder lassen bei vielen Parzellen die Rebzeilen ringsum sichtbar
+            var width = roomy ? 290.0 : Math.Min(280.0, slot.Width * 0.78);
+            var height = roomy ? 64.0 : Math.Clamp(slot.Height - 22, 24, 32);
             var label = ripe
-                ? Kit.Box(slot.Cx - width / 2, slot.Cy - 32, width, 64, radius: 12, gradient: Kit.Vertical(Theme.Paper, Theme.PaperDark), shadow: true)
-                : Kit.Box(slot.Cx - width / 2, slot.Cy - 32, width, 64, Theme.C("#c71c1418"), 12);
-            label.With(Kit.Text(plot.Name, 14, 6, width - 28, 28, small ? 17 : 19, ripe ? Theme.Ink : Theme.Cream, bold: true));
-            label.With(Kit.Text(PlotLine(state, plot), 14, 33, width - 28, 26, small ? 15 : 17, ripe ? Theme.InkSoft : Theme.CreamSoft));
+                ? Kit.Box(slot.Cx - width / 2, slot.Cy - height / 2, width, height, radius: roomy ? 12 : height / 2, gradient: Kit.Vertical(Theme.Paper, Theme.PaperDark), shadow: true)
+                : Kit.Box(slot.Cx - width / 2, slot.Cy - height / 2, width, height, Theme.C("#c71c1418"), roomy ? 12 : height / 2);
+            if (roomy)
+            {
+                label.With(Kit.Text(plot.Name, 14, 6, width - 28, 28, 19, ripe ? Theme.Ink : Theme.Cream, bold: true));
+                label.With(Kit.Text(PlotLine(state, plot), 14, 33, width - 28, 26, 17, ripe ? Theme.InkSoft : Theme.CreamSoft));
+            }
+            else
+            {
+                var text = slot.Columns >= 8 ? plot.Name : $"{plot.Name} · {PlotShort(state, plot)}";
+                var size = height < 28 ? 13.5 : slot.Columns >= 6 ? 15 : 17;
+                label.With(Kit.Text(text, 8, (height - size * 1.45) / 2, width - 16, size * 1.5, size, ripe ? Theme.Ink : Theme.Cream, bold: ripe, align: Align.Center));
+            }
             var id = plot.Id;
             label.Tap(() =>
             {
@@ -65,7 +109,7 @@ public static class EstateScene
                 session.Nav.Go(Scene.Weinberg, 0);
             });
             scene.With(label);
-            if (ripe) scene.With(Kit.Badge(1, slot.Cx + width / 2 - 4, slot.Cy - 30, 13));
+            if (ripe) scene.With(Kit.Badge(1, slot.Cx + width / 2 - 4, slot.Cy - height / 2 + 2, roomy ? 13 : 10));
         }
         if (player.Plots.Count > shown.Count)
         {
@@ -119,6 +163,17 @@ public static class EstateScene
     static bool IsHarvestable(GameState state, Plot plot) =>
         plot.Grape is not null && !plot.HarvestedThisYear && plot.Oechsle > 0 &&
         Rules.PlotAgeFactor(plot, state.Year) > 0 && Array.IndexOf(Rules.HarvestMonths, state.Month) >= 0;
+
+    /// <summary>Kurzfassung für die einzeiligen Schilder bei vielen Parzellen</summary>
+    static string PlotShort(GameState state, Plot plot)
+    {
+        if (plot.Grape is not { } grapeId) return "Brache";
+        if (Rules.PlotAgeFactor(plot, state.Year) <= 0) return "Junganlage";
+        if (plot.HarvestedThisYear) return "gelesen";
+        if (plot.IceWineGamble) return "Eiswein";
+        if (plot.Oechsle > 0) return $"{Js.Round(plot.Oechsle)} °Oe";
+        return Grapes.All[grapeId].Name.Replace(" (PIWI)", "");
+    }
 
     static string PlotLine(GameState state, Plot plot)
     {
@@ -235,38 +290,24 @@ public static class EstateScene
 
     // ---- Panorama ----
 
-    static void PaintPanorama(SKCanvas c, float w, float h, GameState state, Player player, List<Plot> plots)
+    static void PaintPanorama(SKCanvas c, float w, float h, GameState state, Player player, List<Plot> plots, List<Slot> slots)
     {
+        var t = Anim.Use();
         var season = SeasonFor(state.Month);
         var wet = state.LastWeather == WeatherKind.Nass;
         using (var sky = Draw.VerticalGradient(0, h * 0.8f, (0, season.SkyTop), (0.5f, season.SkyMid), (1, season.SkyLow)))
             c.DrawRect(0, 0, w, h, sky);
 
         // Sonne: Stand nach Jahreszeit, bei Nässe verdeckt
+        var weather = state.LastWeather;
         if (!wet)
         {
             var sunY = state.Month is >= 5 and <= 8 ? 190f : 330f;
-            using var glow = new SKPaint
-            {
-                IsAntialias = true,
-                Shader = SKShader.CreateRadialGradient(new SKPoint(1268, sunY), 260,
-                    [SKColor.Parse("#fff3c4"), SKColor.Parse("#e6ffd27a"), SKColor.Parse("#00ffd27a")], [0, 0.35f, 1], SKShaderTileMode.Clamp),
-            };
-            c.DrawCircle(1268, sunY, 260, glow);
-            using var disc = Draw.Fill("#fff0bd");
-            c.DrawCircle(1268, sunY, 58, disc);
+            WeatherFx.Sun(c, 1268, sunY, 260, 58, t, rays: weather == WeatherKind.Sonnig && !season.Snow);
         }
-        using (var cloud = Draw.Fill(SKColors.White.WithAlpha((byte)(wet ? 150 : 70))))
-        {
-            c.DrawOval(308, 118, 210, 26, cloud);
-            c.DrawOval(448, 144, 150, 18, cloud);
-            c.DrawOval(1538, 158, 170, 20, cloud);
-            if (wet)
-            {
-                c.DrawOval(900, 90, 320, 36, cloud);
-                c.DrawOval(1250, 130, 260, 30, cloud);
-            }
-        }
+        // Wolken ziehen: bei Sonne wenige und gemächlich, bei Nässe eine dichte, graue Decke
+        var cloudColor = wet ? SKColor.Parse(season.Snow ? "#dfe6ee" : "#c3cbd8").WithAlpha(170) : SKColors.White.WithAlpha((byte)(weather == WeatherKind.Sonnig ? 70 : 105));
+        WeatherFx.Clouds(c, w, t, wet ? 11 : weather == WeatherKind.Sonnig ? 3 : 6, wet ? 26 : weather == WeatherKind.Sonnig ? 9 : 17, cloudColor, 70, wet ? 250 : 210);
 
         using (var far = Draw.VerticalGradient(330, h, (0, season.Far1), (1, season.Far2)))
             Draw.Path(c, $"M0 428 C148 328 408 378 648 348 C928 308 1188 378 1448 338 C1608 318 1728 348 {w} 338 L{w} {h} L0 {h} Z", far);
@@ -284,10 +325,16 @@ public static class EstateScene
         }
 
         using (var mid = Draw.VerticalGradient(430, h, (0, season.Mid1), (1, season.Mid2)))
-            Draw.Path(c, $"M0 548 C188 448 528 508 788 468 C1088 418 1388 508 {w} 448 L{w} {h} L0 {h} Z", mid);
+            Draw.Path(c, Slope(w, h), mid);
 
-        // Parzellen
-        for (var i = 0; i < plots.Count; i++) PaintPlot(c, Slots[i].Path, state, plots[i]);
+        // Parzellen liegen auf dem Rebhang; nichts ragt über die Hügelkante
+        using (var slope = SKPath.ParseSvgPathData(Slope(w, h)))
+        {
+            c.Save();
+            c.ClipPath(slope, antialias: true);
+            for (var i = 0; i < plots.Count; i++) PaintPlot(c, slots[i].Path, state, plots[i], Math.Clamp(slots[i].Height / 110f, 0.45f, 1f));
+            c.Restore();
+        }
 
         // Fluss
         using (var river = Draw.Fill(SKColor.Parse(season.Snow ? "#dfe8ef" : "#c9d7e6").WithAlpha(150)))
@@ -298,26 +345,26 @@ public static class EstateScene
 
         PaintBuildings(c, player, season.Snow);
 
-        if (wet)
+        // Niederschlag und Laub liegen über allem, lassen aber die Aufgaben am unteren Rand frei
+        c.Save();
+        c.ClipRect(new SKRect(0, 0, w, h - 150));
+        if (season.Snow)
         {
-            using var veil = Draw.Fill(SKColor.Parse("#33415c").WithAlpha(70));
-            c.DrawRect(0, 0, w, h, veil);
-            using var rain = Draw.Stroke(SKColor.Parse("#dfe8ef").WithAlpha(90), 2);
-            for (var i = 0; i < 90; i++)
-            {
-                var x = (i * 137 + 40) % w;
-                var y = (i * 71 + 20) % (h - 160);
-                c.DrawLine(x, y, x - 10, y + 34, rain);
-            }
+            if (weather != WeatherKind.Sonnig) WeatherFx.Snow(c, w, h, t, wet ? 190 : 90);
         }
-        if (season.Snow && state.LastWeather != WeatherKind.Sonnig)
+        else if (wet)
         {
-            using var flake = Draw.Fill(SKColors.White.WithAlpha(200));
-            for (var i = 0; i < 120; i++) c.DrawCircle((i * 173 + 30) % w, (i * 97 + 10) % (h - 120), 2 + i % 3, flake);
+            using (var veil = Draw.Fill(SKColor.Parse("#33415c").WithAlpha(70))) c.DrawRect(0, 0, w, h, veil);
+            WeatherFx.Rain(c, w, h, t, 170);
         }
+        else if (state.Month is 10 or 11)
+        {
+            WeatherFx.Leaves(c, w, h, t, weather == WeatherKind.Sonnig ? 10 : 18);
+        }
+        c.Restore();
     }
 
-    static void PaintPlot(SKCanvas c, string pathData, GameState state, Plot plot)
+    static void PaintPlot(SKCanvas c, string pathData, GameState state, Plot plot, float scale = 1)
     {
         using var path = SKPath.ParseSvgPathData(pathData);
         var winter = state.Month is 11 or 12 or 1 or 2 or 3;
@@ -342,9 +389,9 @@ public static class EstateScene
         var bounds = path.Bounds;
         if (rows)
         {
-            using var row = Draw.Stroke(light, 9);
+            using var row = Draw.Stroke(light, 9 * scale);
             c.RotateDegrees(-16, bounds.MidX, bounds.MidY);
-            for (var y = bounds.Top - 120; y < bounds.Bottom + 120; y += 22) c.DrawLine(bounds.Left - 150, y, bounds.Right + 150, y, row);
+            for (var y = bounds.Top - 120; y < bounds.Bottom + 120; y += 22 * scale) c.DrawLine(bounds.Left - 150, y, bounds.Right + 150, y, row);
         }
         else
         {

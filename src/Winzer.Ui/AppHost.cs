@@ -59,6 +59,7 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
     public SkiaControl Build(double width, double height)
     {
         Kit.S = Math.Max(0.2, Math.Min(width / Kit.DesignWidth, height / Kit.DesignHeight));
+        Kit.ResetHover();
         var root = new SkiaLayout
         {
             Type = LayoutType.Absolute,

@@ -33,6 +33,16 @@ Eine Szene liefert einen `Kit.Layer(0, 0, Shell.StageWidth, Shell.StageHeight)` 
 - `.Tap(action)` macht jedes Element antippbar; `.At(x, y, w, h)` setzt Lage und Größe.
 - Farben in `Theme` (DrawnUi-`Color` und `Sk…` für SkiaSharp). Auf dunklem Grund `Cream`/`CreamSoft`/`Gold`, auf Pergament `Ink`/`InkSoft`/`Wine`.
 
+## Hover und Bewegung
+
+- **Hover:** `Kit.Tap` macht ein Element antippbar und legt zugleich einen durchscheinenden Schleier mit goldenem Rand darüber, der nur unter dem Mauszeiger sichtbar ist; das Fenster zeigt dann die Hand. Wer eine Tippfläche baut, bekommt den Effekt also von selbst – nie `OnTapped` direkt aufrufen.
+- **Bewegte Bilder:** Ein Maler, der sich bewegen soll, holt die Zeit mit `Anim.Use()` (Sekunden). Das Fenster zeichnet dann rund 20-mal je Sekunde neu, solange es vorn liegt; ohne bewegten Maler auf dem Schirm ruht es. Bewegung wird nur aus der Zeit berechnet, nichts wird gemerkt. Das Wetter (`Scenes/WeatherFx.cs`: Sonne, Wolken, Regen, Schnee, Laub, Sterne, Rauch) läuft in der Gutsansicht und im Hauptmenü.
+- **Gutsansicht:** `EstateScene.Layout` verteilt bis zu 24 Parzellen auf den Rebhang zwischen Hügelkante und Fluss – bis vier groß in einer Reihe, darüber in zwei oder drei Reihen mit schmalen einzeiligen Schildern. Alles wird auf den Hang beschnitten.
+
+## Fenster
+
+Das Spiel startet ohne Titelleiste in der Größe des Arbeitsbereichs (`MainWindow.FillWorkArea`), die Taskleiste bleibt sichtbar. Beendet wird über das Menü oder Alt+F4. Die Prüfläufe (`--shot`, `--selbstspiel`) nutzen ein gewöhnliches Fenster.
+
 ## Navigator
 
 - `session.Nav.Go(scene, tab?)`, `SetTab(i)`
@@ -56,6 +66,8 @@ src\Winzer.Desktop\bin\Debug\net11.0-windows\WinzerAI.exe --shot bild.png --scen
 `--shot` spielt eine Partie die angegebenen Züge weiter (`--play` liest, füllt ab und leiht dabei), zeigt Szene und Reiter, speichert ein Bild (1280 × 720) und beendet sich. Mit den erweiterten Regeln hat ein Jahr 14 Züge, `--months 9` ist also die erste Oktoberhälfte. Weitere Schalter: `--seed`, `--region`, `--rules 1|2`, `--overlay Lexicon|Menu|Decision|Plan|Review|Show|Auto`, `--otab`, `--summary`, `--menu`.
 
 `--click 1750,1015` klickt vor dem Foto mit der echten Maus an eine Stelle der Entwurfsfläche, `--key Space` drückt eine echte Taste (`Space`, `Escape`, `Tab`, `Enter`, Ziffer oder Buchstabe); beides mehrfach und in dieser Reihenfolge. Neben dem Bild entsteht `bild.png.txt` mit dem Stand danach (Szene, Zug, Konto, Chargen …) – so lässt sich prüfen, ob eine Schaltfläche wirklich wirkt. Mehrere Prüfläufe gleichzeitig warten aufeinander, weil Klicks das vorderste Fenster treffen.
+
+`--hover 1750,1015` stellt den echten Mauszeiger vor dem Foto auf eine Stelle (Hover-Effekt prüfen), `--plots 14` füllt das Gut fürs Bild auf so viele Parzellen auf, `--weather sonnig|wechselhaft|nass` setzt das Wetter des letzten Monats. In der Textdatei steht mit `zeichnungen=`, wie oft bemalte Flächen gezeichnet wurden – bei laufender Animation deutlich mehr als eine Handvoll.
 
 ## Eine ganze Partie von selbst spielen
 
