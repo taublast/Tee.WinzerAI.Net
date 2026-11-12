@@ -267,6 +267,18 @@ public static class Kit
     public static SkiaShape Glass(double x, double y, double w, double h, double radius = 18, bool shadow = true) =>
         Box(x, y, w, h, Theme.Glass, radius, shadow: shadow);
 
+    static readonly SKTypeface SansFace = SKTypeface.FromFamilyName(Theme.Sans);
+
+    /// <summary>
+    /// Gemessene Breite eines einzeiligen Textes in Entwurfseinheiten. Entscheidet, ob ein Text umbrechen muss –
+    /// eine Schätzung über die Zeichenzahl lag oft daneben und reservierte dann Platz für eine Zeile, die es nicht gab.
+    /// </summary>
+    public static double TextWidth(string text, double size)
+    {
+        using var font = new SKFont(SansFace, (float)size);
+        return font.MeasureText(text);
+    }
+
     static bool NeedsRich(string text)
     {
         foreach (var ch in text)
@@ -346,12 +358,18 @@ public static class Kit
         {
             var text = disabled ? problem! : line;
             // Lange Unterzeilen (vor allem Sperrgründe der Engine) brechen auf zwei Zeilen um, wenn die Höhe reicht
-            var twoLines = text.Length > (w - 2 * pad) / 8.2 && h >= fontSize * 1.4 + 50;
+            // Zwei Zeilen nur, wenn der Text wirklich nicht in eine passt; sonst säße der Block zu hoch
+            // Passt er knapp nicht, wird er erst etwas kleiner gesetzt, bevor er umbricht
+            var room = (w - 2 * pad) * 0.97;
+            var subSize = TextWidth(text, 16) <= room ? 16 : 14.5;
+            var twoLines = TextWidth(text, subSize) > room && h >= fontSize * 1.4 + 50;
+            if (twoLines) subSize = 15;
             var subHeight = twoLines ? 46 : 24;
+            // Titel und Unterzeile als ein Block, senkrecht in der Schaltfläche zentriert
             var top = Math.Max(4, (h - fontSize * 1.4 - subHeight) / 2);
             box.With(
                 Text(title, pad, top, w - 2 * pad, fontSize * 1.5, fontSize, titleColor, bold: true, align: align),
-                Text(text, pad, top + fontSize * 1.4, w - 2 * pad, subHeight, twoLines ? 15 : 16, subColor, align: align, maxLines: twoLines ? 2 : 1));
+                Text(text, pad, top + fontSize * 1.4, w - 2 * pad, subHeight, subSize, subColor, align: align, maxLines: twoLines ? 2 : 1));
         }
         if (disabled) box.Opacity = 0.5;
         else box.Tap(onTap);

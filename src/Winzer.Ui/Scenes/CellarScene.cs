@@ -134,7 +134,7 @@ internal static class CellarParts
     public static SkiaShape Action(string title, double x, double y, double w, double h, Action onTap, ButtonKind kind,
         string? sub, string? problem, double fontSize = 21)
     {
-        if (problem is null || problem.Length * 7.6 <= w - 44) return Kit.Button(title, x, y, w, h, onTap, kind, sub, problem, fontSize);
+        if (problem is null || Kit.TextWidth(problem, 16) <= (w - 44) * 0.97) return Kit.Button(title, x, y, w, h, onTap, kind, sub, problem, fontSize);
         var primary = kind == ButtonKind.Primary;
         var box = primary
             ? Kit.Box(x, y, w, h, radius: 16, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark))
