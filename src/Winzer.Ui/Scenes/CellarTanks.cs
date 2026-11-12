@@ -392,11 +392,29 @@ internal static class CellarTanks
         if (batch is not null)
         {
             var (topColor, bottomColor) = CellarParts.WineColors(batch);
-            var top = 292 - 260 * (float)level;
+            // Der Füllstand steigt weich auf seinen Wert; solange der Wein reift, perlt er
+            var working = batch.MonthsUntilReady > 0;
+            var t = working ? Anim.Use() : 0;
+            var seed = 0;
+            foreach (var ch in batch.Id) seed = seed * 31 + ch & 0xffff;
+            var top = 292 - 260 * (float)Anim.Tween($"tank:{batch.Id}", level, 1.1, start: 0.02);
+            if (working) top += MathF.Sin(t * 1.8f + seed) * 1.4f;
             c.Save();
             c.ClipRoundRect(glass, antialias: true);
             using (var wine = Draw.VerticalGradient(top, 292, (0, topColor), (1, bottomColor))) c.DrawRect(28, top, 104, 292 - top, wine);
             using (var surface = Draw.Fill(SKColors.White.WithAlpha(70))) c.DrawRect(28, top, 104, 5, surface);
+            if (working)
+            {
+                using var bubble = Draw.Stroke(SKColors.White.WithAlpha(120), 1.3f);
+                var depth = Math.Max(20, 292 - top);
+                for (var i = 0; i < 9; i++)
+                {
+                    var rise = WeatherFx.Wrap(WeatherFx.Hash(i + seed, 1) * depth + t * (16 + WeatherFx.Hash(i + seed, 2) * 22), depth);
+                    var x = 40 + WeatherFx.Hash(i + seed, 3) * 80 + MathF.Sin(t * 2 + i) * 2.5f;
+                    bubble.Color = SKColors.White.WithAlpha((byte)(130 * (1 - rise / depth) + 20));
+                    c.DrawCircle(x, 292 - rise, 1.6f + WeatherFx.Hash(i + seed, 4) * 2.6f, bubble);
+                }
+            }
             c.Restore();
         }
         using (var shine = Draw.Fill(SKColors.White.WithAlpha(34))) c.DrawRoundRect(36, 42, 9, 240, 4.5f, 4.5f, shine);

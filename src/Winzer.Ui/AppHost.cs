@@ -39,6 +39,7 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
     public void ShowMenu()
     {
         Session = null;
+        Anim.Reset();
         Menu.Reset();
         Changed?.Invoke();
     }
@@ -47,6 +48,7 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
     {
         var id = saveId ?? NewSaveId(DateTime.Now);
         if (saveId is null) Store.Write(id, state);
+        Anim.Reset();
         Session = new GameSession(state, id, Store, Audio);
         Session.Changed += () => Changed?.Invoke();
         Changed?.Invoke();
@@ -60,6 +62,7 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
     {
         Kit.S = Math.Max(0.2, Math.Min(width / Kit.DesignWidth, height / Kit.DesignHeight));
         Kit.ResetHover();
+        Anim.BeginBuild();
         var root = new SkiaLayout
         {
             Type = LayoutType.Absolute,

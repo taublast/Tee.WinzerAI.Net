@@ -67,6 +67,47 @@ public static class EstateScene
         _ => new("#27364f", "#b8656a", "#f3b871", "#7c6a78", "#5d5468", "#8c7a45", "#5f6a35", "#6f7f33", "#34451f", false),
     };
 
+    // Jahreszeitenwechsel: Farben blenden von der gezeigten zur neuen Jahreszeit über
+    static Season? seasonFrom, seasonTo;
+    static double seasonStart;
+    static int seasonEpoch = -1;
+    const double SeasonSeconds = 1.8;
+
+    static Season SeasonNow(int month)
+    {
+        var target = SeasonFor(month);
+        if (seasonTo is null || seasonEpoch != Anim.Epoch || !Anim.Enabled)
+        {
+            seasonEpoch = Anim.Epoch;
+            seasonFrom = seasonTo = target;
+            return target;
+        }
+        if (target != seasonTo)
+        {
+            seasonFrom = SeasonShown();
+            seasonTo = target;
+            seasonStart = Anim.Now;
+        }
+        return SeasonShown();
+    }
+
+    static Season SeasonShown()
+    {
+        var p = (Anim.Now - seasonStart) / SeasonSeconds;
+        if (p >= 1 || seasonFrom == seasonTo) return seasonTo!;
+        Anim.Use();
+        var k = (float)(p * p * (3 - 2 * p));
+        var (a, b) = (seasonFrom!, seasonTo!);
+        string Mix(string x, string y)
+        {
+            var (cx, cy) = (SKColor.Parse(x), SKColor.Parse(y));
+            byte Channel(byte u, byte v) => (byte)Math.Round(u + (v - u) * k);
+            return $"#{Channel(cx.Red, cy.Red):x2}{Channel(cx.Green, cy.Green):x2}{Channel(cx.Blue, cy.Blue):x2}";
+        }
+        return new Season(Mix(a.SkyTop, b.SkyTop), Mix(a.SkyMid, b.SkyMid), Mix(a.SkyLow, b.SkyLow), Mix(a.Far1, b.Far1), Mix(a.Far2, b.Far2),
+            Mix(a.Mid1, b.Mid1), Mix(a.Mid2, b.Mid2), Mix(a.Near1, b.Near1), Mix(a.Near2, b.Near2), k > 0.5f ? b.Snow : a.Snow);
+    }
+
     public static SkiaControl Build(GameSession session)
     {
         var state = session.State;
@@ -293,7 +334,7 @@ public static class EstateScene
     static void PaintPanorama(SKCanvas c, float w, float h, GameState state, Player player, List<Plot> plots, List<Slot> slots)
     {
         var t = Anim.Use();
-        var season = SeasonFor(state.Month);
+        var season = SeasonNow(state.Month);
         var wet = state.LastWeather == WeatherKind.Nass;
         using (var sky = Draw.VerticalGradient(0, h * 0.8f, (0, season.SkyTop), (0.5f, season.SkyMid), (1, season.SkyLow)))
             c.DrawRect(0, 0, w, h, sky);
@@ -302,12 +343,15 @@ public static class EstateScene
         var weather = state.LastWeather;
         if (!wet)
         {
-            var sunY = state.Month is >= 5 and <= 8 ? 190f : 330f;
+            var sunY = (float)Anim.Tween("gut.sonne", state.Month is >= 5 and <= 8 ? 190 : 330, SeasonSeconds);
             WeatherFx.Sun(c, 1268, sunY, 260, 58, t, rays: weather == WeatherKind.Sonnig && !season.Snow);
         }
         // Wolken ziehen: bei Sonne wenige und gemächlich, bei Nässe eine dichte, graue Decke
         var cloudColor = wet ? SKColor.Parse(season.Snow ? "#dfe6ee" : "#c3cbd8").WithAlpha(170) : SKColors.White.WithAlpha((byte)(weather == WeatherKind.Sonnig ? 70 : 105));
         WeatherFx.Clouds(c, w, t, wet ? 11 : weather == WeatherKind.Sonnig ? 3 : 6, wet ? 26 : weather == WeatherKind.Sonnig ? 9 : 17, cloudColor, 70, wet ? 250 : 210);
+
+        // Ein Vogelschwarm zieht vorbei, solange es nicht regnet oder schneit
+        if (!wet && !season.Snow) EstateFx.Birds(c, w, t);
 
         using (var far = Draw.VerticalGradient(330, h, (0, season.Far1), (1, season.Far2)))
             Draw.Path(c, $"M0 428 C148 328 408 378 648 348 C928 308 1188 378 1448 338 C1608 318 1728 348 {w} 338 L{w} {h} L0 {h} Z", far);
@@ -332,7 +376,7 @@ public static class EstateScene
         {
             c.Save();
             c.ClipPath(slope, antialias: true);
-            for (var i = 0; i < plots.Count; i++) PaintPlot(c, slots[i].Path, state, plots[i], Math.Clamp(slots[i].Height / 110f, 0.45f, 1f));
+            for (var i = 0; i < plots.Count; i++) PaintPlot(c, slots[i].Path, state, plots[i], Math.Clamp(slots[i].Height / 110f, 0.45f, 1f), t, i);
             c.Restore();
         }
 
@@ -343,7 +387,12 @@ public static class EstateScene
         using (var near = Draw.VerticalGradient(640, h, (0, season.Near1), (1, season.Near2)))
             Draw.Path(c, $"M0 668 C248 608 648 688 1008 638 C1348 598 1588 648 {w} 628 L{w} {h} L0 {h} Z", near);
 
-        PaintBuildings(c, player, season.Snow);
+        var cold = state.Month is 11 or 12 or 1 or 2 or 3;
+        var dusk = state.Month is >= 9 or <= 2;
+        PaintBuildings(c, player, season.Snow, dusk, t);
+        if (cold) WeatherFx.Smoke(c, 649, 590, t);
+        // Zur Lese fährt der Traktor die Trauben ein
+        if (!season.Snow && Array.IndexOf(Rules.HarvestMonths, state.Month) >= 0) EstateFx.Tractor(c, 1270, 1740, 808, t);
 
         // Niederschlag und Laub liegen über allem, lassen aber die Aufgaben am unteren Rand frei
         c.Save();
@@ -364,7 +413,7 @@ public static class EstateScene
         c.Restore();
     }
 
-    static void PaintPlot(SKCanvas c, string pathData, GameState state, Plot plot, float scale = 1)
+    static void PaintPlot(SKCanvas c, string pathData, GameState state, Plot plot, float scale = 1, float t = 0, int index = 0)
     {
         using var path = SKPath.ParseSvgPathData(pathData);
         var winter = state.Month is 11 or 12 or 1 or 2 or 3;
@@ -390,8 +439,11 @@ public static class EstateScene
         if (rows)
         {
             using var row = Draw.Stroke(light, 9 * scale);
-            c.RotateDegrees(-16, bounds.MidX, bounds.MidY);
-            for (var y = bounds.Top - 120; y < bounds.Bottom + 120; y += 22 * scale) c.DrawLine(bounds.Left - 150, y, bounds.Right + 150, y, row);
+            // Belaubte Zeilen wiegen sich leicht im Wind
+            var leafy = !winter && !plot.HarvestedThisYear;
+            var sway = leafy ? MathF.Sin(t * 1.1f + index * 1.9f) : 0;
+            c.RotateDegrees(-16 + sway * 0.45f, bounds.MidX, bounds.MidY);
+            for (var y = bounds.Top - 120 + sway * 1.8f * scale; y < bounds.Bottom + 120; y += 22 * scale) c.DrawLine(bounds.Left - 150, y, bounds.Right + 150, y, row);
         }
         else
         {
@@ -406,8 +458,10 @@ public static class EstateScene
         c.DrawPath(path, edge);
         if (IsHarvestable(state, plot))
         {
-            using var mark = Draw.Stroke(Theme.SkGold, 6);
-            mark.PathEffect = SKPathEffect.CreateDash([18, 10], 0);
+            // Lesereif: Der goldene Rand pulsiert sanft und wandert
+            var pulse = 0.5f + 0.5f * MathF.Sin(t * 2.6f + index);
+            using var mark = Draw.Stroke(Theme.SkGold.WithAlpha((byte)(150 + 105 * pulse)), (5 + 2 * pulse) * Math.Max(0.6f, scale));
+            mark.PathEffect = SKPathEffect.CreateDash([18, 10], -t * 12);
             c.DrawPath(path, mark);
         }
         if (plot.HailNet)
@@ -420,7 +474,7 @@ public static class EstateScene
         }
     }
 
-    static void PaintBuildings(SKCanvas c, Player player, bool snow)
+    static void PaintBuildings(SKCanvas c, Player player, bool snow, bool dusk, float t)
     {
         using var shadow = Draw.Fill(SKColors.Black.WithAlpha(50));
         c.DrawOval(700, 818, 420, 14, shadow);
@@ -428,8 +482,15 @@ public static class EstateScene
         // Gutshaus (Kontor)
         using (var wall = Draw.Fill("#efe1c6")) c.DrawRect(448, 660, 250, 150, wall);
         using (var roof = Draw.Fill(snow ? "#e8eef2" : "#8a3b2c")) Draw.Path(c, "M428 664 L573 576 L718 664 Z", roof);
+        using (var chimney = Draw.Fill("#6f2f24")) c.DrawRect(638, 594, 22, 44, chimney);
+        if (snow)
+        {
+            using var cap = Draw.Fill("#e8eef2");
+            c.DrawRect(635, 590, 28, 7, cap);
+        }
         using (var door = Draw.Fill("#5c1429")) c.DrawRoundRect(548, 734, 50, 76, 24, 24, door);
-        using (var window = Draw.Fill("#3a4c66"))
+        // In der dunklen Jahreshälfte brennt Licht; es flackert kaum merklich
+        using (var window = Draw.Fill(dusk ? SKColor.Parse("#ffd98a").WithAlpha((byte)(225 + 30 * MathF.Sin(t * 3.1f))) : SKColor.Parse("#3a4c66")))
         {
             c.DrawRect(478, 698, 40, 46, window);
             c.DrawRect(628, 698, 40, 46, window);

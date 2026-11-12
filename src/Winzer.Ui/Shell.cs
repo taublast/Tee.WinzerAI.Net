@@ -101,20 +101,28 @@ public static class Shell
             c.DrawCircle(w / 2, h / 2, 15, gold);
             using var ink = Draw.Stroke(Theme.SkInk, 2.6f);
             Draw.Path(c, "M21 9.5 a7 7 0 1 0 0 11 M8 13 h9 M8 17 h9", ink);
-        }, Util.FormatEuro(player.Money), null, player.Money < 0 ? Theme.C("#ff9b8a") : Theme.Cream)
+        }, Util.FormatEuro(player.Money), null, player.Money < 0 ? Theme.C("#ff9b8a") : Theme.Cream,
+            label => Count(label, $"{player.Id}:konto", player.Money, Util.FormatEuro))
             .Tap(() => session.Nav.Go(Scene.Kontor)));
 
         var hasTarget = Rules.HasPointTarget(state);
-        var points = Util.FormatNumber(player.Points) + (hasTarget ? $" / {Util.FormatNumber(state.TargetPoints)}" : "");
+        var goal = hasTarget ? $" / {Util.FormatNumber(state.TargetPoints)}" : "";
+        var points = Util.FormatNumber(player.Points) + goal;
         var pointsPill = Pill(806, 230, (c, w, h) =>
         {
             using var gold = Draw.VerticalGradient(0, h, (0, "#f6d477"), (1, "#c8962e"));
             Draw.Path(c, "M5 4 h20 v8 a10 10 0 0 1 -20 0 Z M12 22 h6 v5 h-6 Z M8 27 h14 v3 h-14 Z", gold);
-        }, points, null, Theme.Cream).Tap(() => session.Nav.Go(Scene.Dorf));
+        }, points, null, Theme.Cream, label => Count(label, $"{player.Id}:punkte", player.Points, v => Util.FormatNumber(v) + goal)).Tap(() => session.Nav.Go(Scene.Dorf));
         if (hasTarget)
         {
             pointsPill.With(Kit.Box(56, 42, 150, 4, Theme.GlassLine, 2));
-            pointsPill.With(Kit.Box(56, 42, Math.Max(4, 150 * Math.Clamp(player.Points / state.TargetPoints, 0, 1)), 4, Theme.Gold, 2));
+            var share = Math.Clamp(player.Points / state.TargetPoints, 0, 1);
+            pointsPill.With(Kit.Paint(56, 42, 150, 4, (c, w, h) =>
+            {
+                // Der Balken wächst mit den Punkten mit
+                using var gold = Draw.Fill(Theme.SkGold);
+                c.DrawRoundRect(0, 0, (float)Math.Max(4, w * Anim.Tween($"{player.Id}:punktebalken", share, 0.9)), h, 2, 2, gold);
+            }));
         }
         bar.With(pointsPill);
 
@@ -163,12 +171,24 @@ public static class Shell
         return bar;
     }
 
-    static SkiaShape Pill(double x, double w, Action<SKCanvas, float, float> icon, string value, string? word, Color color)
+    /// <summary>Lässt eine Zahl nach einem Zug auf ihren neuen Wert zählen, statt zu springen.</summary>
+    static void Count(SkiaLabel label, string key, double target, Func<double, string> format) =>
+        Anim.Drive(() =>
+        {
+            var value = Anim.Tween(key, target, 0.9);
+            var running = Math.Abs(value - target) >= 0.5;
+            label.Text = format(running ? Math.Round(value) : target);
+            return running;
+        });
+
+    static SkiaShape Pill(double x, double w, Action<SKCanvas, float, float> icon, string value, string? word, Color color, Action<SkiaLabel>? bind = null)
     {
         var pill = Kit.Box(x, 20, w, 52, Theme.GlassLight, 26, Theme.GlassLine, 1.5);
         pill.With(Kit.Paint(13, 11, 30, 30, icon));
         var valueWidth = word is null ? w - 66 : 22 + value.Length * 14;
-        pill.With(Kit.Text(value, 56, 9, valueWidth, 34, 24, color, bold: true));
+        var label = Kit.Text(value, 56, 9, valueWidth, 34, 24, color, bold: true);
+        pill.With(label);
+        bind?.Invoke(label);
         if (word is not null) pill.With(Kit.Text(word, 56 + valueWidth, 17, w - 62 - valueWidth, 24, 15, Theme.CreamSoft));
         return pill;
     }

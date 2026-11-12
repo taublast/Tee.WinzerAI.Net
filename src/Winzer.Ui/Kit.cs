@@ -153,6 +153,22 @@ public static class Kit
         return control;
     }
 
+    /// <summary>
+    /// Lässt ein Element beim ersten Erscheinen einblenden und dabei ein Stück aufsteigen. <paramref name="key"/> benennt
+    /// den Anlass (alle Elemente eines Anlasses teilen eine Uhr), <paramref name="delay"/> staffelt sie in Sekunden.
+    /// </summary>
+    public static T Reveal<T>(this T control, string key, double delay, double rise = 14, double seconds = 0.32) where T : SkiaControl
+    {
+        Anim.Drive(() =>
+        {
+            var p = Math.Clamp((Anim.Since(key) - delay) / seconds, 0, 1);
+            control.Opacity = Anim.EaseOut(p);
+            control.TranslationY = (1 - Anim.EaseOut(p)) * rise * S;
+            return p < 1;
+        });
+        return control;
+    }
+
     /// <summary>Unsichtbarer Behälter mit eigenen Koordinaten</summary>
     public static SkiaLayout Layer(double x, double y, double w, double h) =>
         new SkiaLayout { Type = LayoutType.Absolute }.At(x, y, w, h);

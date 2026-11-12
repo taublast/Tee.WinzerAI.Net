@@ -325,36 +325,59 @@ public static class OverlaysV2
         var pages = Math.Max(1, (int)Math.Ceiling(entries.Count / (double)perPage));
         var page = session.Nav.Page("show", pages);
         var y = top + 36;
+        // Jede Zeile erscheint, dann nacheinander die drei Noten, die Wertung und zuletzt die Medaille
+        var occasion = $"schau:{show.Competition}:{show.Year}:{page}";
+        var index = 0;
         foreach (var entry in entries.Skip(page * perPage).Take(perPage))
         {
+            var start = index++ * 0.2;
             var mine = entry.PlayerId == me;
             var row = Kit.Box(32, y, 1436, 64, mine ? Theme.C("#33f6d477") : Tile, 12, mine ? Theme.Gold : null, 1.5);
             row.With(Kit.Text(entry.PlayerName, 16, 18, 290, 30, 19, Theme.Cream, bold: mine));
             row.With(Kit.Text(entry.Wine, 316, 18, 440, 30, 19, Theme.Cream));
             for (var j = 0; j < entry.Jury.Count && j < 3; j++)
             {
-                row.With(Kit.Text(Util.FormatNumber(entry.Jury[j], 1), 768 + j * 110, 16, 90, 32, 22, Theme.CreamSoft, align: Align.Start));
+                row.With(Kit.Text(Util.FormatNumber(entry.Jury[j], 1), 768 + j * 110, 16, 90, 32, 22, Theme.CreamSoft, align: Align.Start)
+                    .Reveal(occasion, start + 0.2 + j * 0.14, rise: 8));
             }
-            row.With(Kit.Text(Util.FormatNumber(entry.Score, 1), 1108, 12, 110, 38, 28, Theme.Gold, bold: true, serif: true));
+            row.With(Kit.Text(Util.FormatNumber(entry.Score, 1), 1108, 12, 110, 38, 28, Theme.Gold, bold: true, serif: true).Reveal(occasion, start + 0.68, rise: 8));
+            var medalAt = start + 0.9;
             if (entry.Medal is { } medal)
             {
                 var color = medal == Medal.Gold ? "#f6d477" : medal == Medal.Silber ? "#d7dee4" : "#c98a52";
-                row.With(Kit.Paint(1238, 12, 40, 40, (c, w, h) =>
+                row.With(Kit.Paint(1228, 2, 60, 60, (c, w, h) =>
                 {
-                    using var ribbon = Draw.Fill(Theme.SkWine);
-                    Draw.Path(c, "M12 22 L8 40 L20 33 L32 40 L28 22 Z", ribbon);
-                    using var disc = Draw.Fill(color);
-                    c.DrawCircle(20, 16, 14, disc);
-                    using var rim = Draw.Stroke(Theme.SkNight.WithAlpha(90), 1.5f);
-                    c.DrawCircle(20, 16, 10, rim);
+                    // Die Medaille fällt groß herein, landet und blitzt einmal auf
+                    var e = (float)(Anim.Since(occasion, medalAt + 1.2) - medalAt);
+                    if (e < 0) return;
+                    var p = Math.Clamp(e / 0.28f, 0, 1);
+                    var size = 1 + (1 - p) * (1 - p) * 1.5f;
+                    var alpha = (byte)(255 * p);
+                    c.Save();
+                    c.Translate(10, 10);
+                    c.Scale(size, size, 20, 18);
+                    using (var ribbon = Draw.Fill(Theme.SkWine.WithAlpha(alpha))) Draw.Path(c, "M12 22 L8 40 L20 33 L32 40 L28 22 Z", ribbon);
+                    using (var disc = Draw.Fill(SKColor.Parse(color).WithAlpha(alpha))) c.DrawCircle(20, 16, 14, disc);
+                    using (var rim = Draw.Stroke(Theme.SkNight.WithAlpha((byte)(90 * p)), 1.5f)) c.DrawCircle(20, 16, 10, rim);
+                    var gleam = (e - 0.28f) / 0.55f;
+                    if (gleam is > 0 and < 1)
+                    {
+                        using var circle = new SKPath();
+                        circle.AddCircle(20, 16, 14);
+                        c.ClipPath(circle, antialias: true);
+                        using var shine = Draw.Fill(SKColors.White.WithAlpha(170));
+                        var x = -6 + gleam * 52;
+                        Draw.Path(c, FormattableString.Invariant($"M{x} 0 L{x + 9} 0 L{x - 3} 32 L{x - 12} 32 Z"), shine);
+                    }
+                    c.Restore();
                 }));
-                row.With(Kit.Text($"{Economy.MedalNames[medal]} · +{Util.JsNumber(entry.Points)}", 1284, 18, 150, 30, 18, Theme.Cream, bold: true));
+                row.With(Kit.Text($"{Economy.MedalNames[medal]} · +{Util.JsNumber(entry.Points)}", 1284, 18, 150, 30, 18, Theme.Cream, bold: true).Reveal(occasion, medalAt + 0.15, rise: 0));
             }
             else
             {
-                row.With(Kit.Text("ohne Medaille", 1238, 18, 190, 30, 18, Theme.CreamSoft));
+                row.With(Kit.Text("ohne Medaille", 1238, 18, 190, 30, 18, Theme.CreamSoft).Reveal(occasion, medalAt, rise: 0));
             }
-            card.With(row);
+            card.With(row.Reveal(occasion, start));
             y += 72;
         }
         var thresholds = competition.Thresholds;

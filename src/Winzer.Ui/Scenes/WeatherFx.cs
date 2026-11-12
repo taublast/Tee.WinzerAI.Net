@@ -9,13 +9,13 @@ namespace Winzer.Ui.Scenes;
 internal static class WeatherFx
 {
     /// <summary>Fester Pseudozufall 0…1 je Teilchen und Eigenschaft</summary>
-    static float Hash(int i, int k)
+    internal static float Hash(int i, int k)
     {
         var x = MathF.Sin(i * 12.9898f + k * 78.233f) * 43758.5453f;
         return x - MathF.Floor(x);
     }
 
-    static float Wrap(float value, float span) => value - MathF.Floor(value / span) * span;
+    internal static float Wrap(float value, float span) => value - MathF.Floor(value / span) * span;
 
     /// <summary>Sonne mit atmendem Schein; bei klarem Wetter drehen sich dazu blasse Strahlen.</summary>
     public static void Sun(SKCanvas c, float x, float y, float glowRadius, float discRadius, float t, bool rays)
@@ -23,7 +23,13 @@ internal static class WeatherFx
         var radius = glowRadius * (1 + 0.05f * MathF.Sin(t * 0.8f));
         if (rays)
         {
-            using var ray = Draw.Fill(SKColor.Parse("#fff3c4").WithAlpha(26));
+            // Die Strahlen verlieren sich nach außen, statt hart zu enden
+            using var ray = new SKPaint
+            {
+                IsAntialias = true,
+                Shader = SKShader.CreateRadialGradient(new SKPoint(x, y), radius * 1.5f,
+                    [SKColor.Parse("#fff3c4").WithAlpha(40), SKColor.Parse("#fff3c4").WithAlpha(0)], [0.2f, 1], SKShaderTileMode.Clamp),
+            };
             c.Save();
             c.RotateDegrees(t * 4, x, y);
             for (var i = 0; i < 12; i++)

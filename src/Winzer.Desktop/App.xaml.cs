@@ -256,7 +256,8 @@ public partial class App : Application
         window.Root.Height = shot.Height;
         MainWindow = window;
         window.Show();
-        await Task.Delay(2500);
+        // Lang genug, dass Übergänge (Aufdecken der Prämierung, Füllstände) vor dem Foto fertig sind
+        await Task.Delay(3400);
         if (shot.Clicks.Count > 0)
         {
             // Echte Klicks treffen das vorderste Fenster: Mehrere Prüfläufe gleichzeitig dürfen sich nicht in die Quere kommen

@@ -36,7 +36,7 @@ public partial class MainWindow : Window
         var frames = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(50) };
         frames.Tick += (_, _) =>
         {
-            if (!Anim.Take() || !IsVisible || WindowState == WindowState.Minimized) return;
+            if (!Anim.Step() || !IsVisible || WindowState == WindowState.Minimized) return;
             // Im Hintergrund ruht das Bild; der nächste Neuaufbau oder Mauszeiger bringt es wieder in Gang
             if (!IsActive && !Topmost) return;
             surface.Canvas?.Update();
