@@ -50,6 +50,14 @@ Die Portierung ist **1:1**. Reihenfolge der Anweisungen, der Zufallsaufrufe und 
 - `x ?? y`, `x?.y` und optionale Felder entsprechen `null`-Prüfungen. `0`, `''` und `null` sind in JavaScript „falsy“ – bei `if (x)` prüfen, welcher Fall gemeint ist.
 - Kommentare des Originals sinngemäß mitnehmen (deutsch).
 
+## Bewusste Abweichungen vom Original
+
+Die Vergleichspartien bleiben davon unberührt (sie laufen ohne erreichbares Punkteziel).
+
+- `Ai.PlayAiTurn`: Steht mitten im Zug ein Sieger fest (Weinprüfung, gelieferter Auftrag), beendet der Computergegner seinen Zug nicht mehr. Das Original scheiterte hier mit „Das Spiel ist beendet“ und die Partie blieb stehen; dort ist der Fehler inzwischen genauso behoben.
+- `Vineyard.RipeningGain`: neue Funktion mit derselben Rechnung wie in `GrowPlot`, für die Halbmonate der Regelversion 2.
+- Alles in `RulesV2.cs` und die mit `RulesV2.On(state)` bzw. `v2` markierten Stellen in `Game.cs`, `Ai.cs` und `Advisor.cs`.
+
 ## Bereits vorhanden (nicht neu anlegen)
 
 `Types.cs`, `Actions.cs`, `Rng.cs`, `Util.cs` (`Util`, `Js`), `Weather.cs`, `Rules.cs`, `Data/Economy.cs`, `Data/Grapes.cs`, `Data/Quality.cs`, `Data/Regions.cs`, `Data/BioData.cs`.

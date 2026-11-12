@@ -65,7 +65,7 @@ public class TraceTests
         }
     }
 
-    static void Compare(string name, int turn, JsonElement row, GameState state)
+    internal static void Compare(string name, int turn, JsonElement row, GameState state)
     {
         var where = $"{name}, Zug {turn} ({row.GetProperty("m").GetInt32()}/{row.GetProperty("y").GetInt32()})";
         Assert.True(row.GetProperty("y").GetInt32() == state.Year && row.GetProperty("m").GetInt32() == state.Month,

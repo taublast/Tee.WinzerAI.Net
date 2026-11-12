@@ -55,9 +55,13 @@ public sealed class PaintBox : SkiaControl
     public float DesignHeight { get; init; }
     public Action<SKCanvas, float, float>? Painter { get; init; }
 
+    /// <summary>Wie oft frei bemalte Flächen tatsächlich gezeichnet wurden – Nachweis für Prüfläufe, dass das Fenster wirklich malt</summary>
+    public static int Paints { get; private set; }
+
     protected override void Paint(DrawingContext ctx)
     {
         base.Paint(ctx);
+        Paints++;
         if (Painter is null || DesignWidth <= 0 || DesignHeight <= 0) return;
         var canvas = ctx.Context.Canvas;
         var r = ctx.Destination;
@@ -218,8 +222,8 @@ public static class Kit
         {
             var text = disabled ? problem! : line;
             // Lange Unterzeilen (vor allem Sperrgründe der Engine) brechen auf zwei Zeilen um, wenn die Höhe reicht
-            var twoLines = text.Length > (w - 2 * pad) / 8.2 && h >= fontSize * 1.4 + 44;
-            var subHeight = twoLines ? 40 : 24;
+            var twoLines = text.Length > (w - 2 * pad) / 8.2 && h >= fontSize * 1.4 + 50;
+            var subHeight = twoLines ? 46 : 24;
             var top = Math.Max(4, (h - fontSize * 1.4 - subHeight) / 2);
             box.With(
                 Text(title, pad, top, w - 2 * pad, fontSize * 1.5, fontSize, titleColor, bold: true, align: align),

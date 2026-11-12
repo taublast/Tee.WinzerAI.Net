@@ -305,40 +305,57 @@ Getroffen am 11.11.2026:
 
 ## 10. Stand der Umsetzung
 
-Stand 11.11.2026. Maßgeblich ist der Code; diese Liste sagt, was davon geprüft ist.
+Stand 12.11.2026. Maßgeblich ist der Code; diese Liste sagt, was davon geprüft ist und wie.
 
 | Phase | Stand | Geprüft durch |
 |---|---|---|
 | 0 Fundament | fertig | Projektmappe baut; CI- und Release-Workflow liegen bei, sind aber noch nie auf GitHub gelaufen |
-| 1 Engine | fertig | 70 KI-Partien des Originals Zug für Zug identisch (`TraceTests`), 221 übertragene Regeltests, Balancing-Report läuft |
-| 2 Gerüst | fertig | Fenster, Skalierung, Kopfzeile, Leiste, Speichern; Bildschirmfotos |
-| 3 Vollständig | Szenen gebaut | Alle Szenen und Reiter per Bildschirmfoto angesehen. Mit echten Mausklicks geprüft: neue Partie über das Menü, Szenenwechsel, Reiter, Zug beenden, Lese, Fassweinverkauf, Kredit, Jahresziel, Ambition, Preis. **Nicht geprüft:** die übrigen Aktionen einzeln, Tastatur, Hot-Seat, Bieten in der Versteigerung, Entscheidungen, Laden von Spielständen |
+| 1 Engine | fertig | 70 KI-Partien des Originals Zug für Zug identisch (`TraceTests`), 221 übertragene Regeltests, zwei Spielstände des alten Spiels laden und spielen identisch weiter (`SaveCompatTests`), Balancing-Report läuft |
+| 2 Gerüst | fertig | Fenster, Skalierung, Kopfzeile, Leiste, Speichern |
+| 3 Vollständig | fertig | Ganze Partien über die Spielsitzung (`FullGameTests`: klassisch, erweitert, zwei Menschen, Jahreslimit, jede Zugart außer dem verdeckten Gebot der Computergegner). Ganze Partien im echten Fenster (`--selbstspiel`), bei denen nach jedem Zug reihum alle Szenen, Reiter und Überlagerungen gezeichnet werden: sieben Partien, kein Fehler. Echte Mausklicks auf die Aktionen aller Szenen und echte Tastendrücke für alle Kürzel. Spielstände: sichern, laden, weiterspielen, löschen (`SaveStoreTests`) |
 | 4 Aufhübschen | teilweise | Gemalte Szenen, Jahreszeiten, Regen und Schnee als Zeichnung; **keine** Shader, **keine** Animationen, Systemschriften statt mitgelieferter |
-| 5 Regelversion 2 | fertig, Balancing vorläufig | 18 Tests; Report mit 2 Seeds: Vermögen nach 15 Jahren rund 2 statt 6,5 Mio. €, Punkte +18 %, Pleiten 1 statt 3 von 104 |
+| 5 Regelversion 2 | fertig, Balancing vorläufig | 18 Regeltests, Tests zum Spielende; Report mit 2 Seeds: Vermögen nach 15 Jahren rund 2 statt 6,5 Mio. €, Punkte +18 %, Pleiten der Computergegner 1 statt 3 von 104 |
 | 6 Browser | zurückgestellt | – |
 | 7 Erweiterungen | offen | – |
+| Auslieferung | ZIP fertig, Installer vorbereitet | `installer/build.ps1` baut je Architektur ein ZIP; beide entpackt, gestartet und eine Partie gespielt (x64 in der Emulation). Das Inno-Setup-Skript ist geschrieben, aber **nie gebaut** – Inno Setup ist auf dem Entwicklungsrechner nicht installiert |
+
+### Was die Prüfungen nicht abdecken
+
+- **Kein Mensch hat eine Partie gespielt.** Der Autopilot spielt über dieselben Wege wie die Oberfläche, aber er sieht nicht, ob etwas missverständlich, zu klein oder unbequem ist.
+- Die Klickprüfungen treffen ausgewählte Schaltflächen je Szene, nicht jede in jedem Zustand. Nicht geklickt: Blättern bei Tanks und Fässern, Abbrechen in Rückfragen, Bieten in der Versteigerung (der Autopilot bietet über die Spielsitzung).
+- Hot-Seat ist über die Spielsitzung und im Selbstspiel geprüft, nicht mit zwei Menschen an einem Gerät.
+- Seltene Zustände im Bild (Sekt, Barrique, Bio-Siegel, Hagelnetz, Insolvenz, mehr als acht Parzellen) kommen im Selbstspiel vor, wurden aber nicht einzeln angesehen.
+
+### Gefundene und behobene Fehler
+
+- **Neuzeichnen:** Die gezeichnete Fläche malte nach einem Neuaufbau nur, wenn die Maus sich bewegte. Nach einem Zug per Tastatur blieb das alte Bild stehen. Jetzt fordert das Fenster nach jedem Aufbau ein Bild an (`MainWindow.Rebuild`).
+- **Sieg mitten im Zug (schon im Original):** Stellt die Weinprüfung oder ein gelieferter Auftrag im Zug eines Computergegners einen Sieger fest, versuchte dieser danach, seinen Zug zu beenden; das scheiterte mit „Das Spiel ist beendet“ und die Partie blieb stehen. `Ai.PlayAiTurn` beendet den Zug jetzt nicht mehr, wenn ein Sieger feststeht. Im alten Repository ist derselbe Fehler inzwischen genauso behoben.
+- **Punkte ohne Siegprüfung (Regelversion 2):** Jahresziel, Schatzkammer und Spende brachten Punkte, ohne dass geprüft wurde, ob damit das Ziel erreicht ist. Jetzt wird direkt danach geprüft.
+- **Einzeldatei startet nicht:** Als einzelne EXE veröffentlicht stürzt die App unter .NET 11 beim Start ab (`DirectWriteForwarder.dll`). Ausgeliefert wird deshalb als Ordner.
+- **Zahlenformat in Zeichenpfaden:** Unter deutscher Kultur entstanden aus Kommazahlen ungültige Pfade; die Oberfläche läuft jetzt kulturneutral.
+- **Liegen gebliebene Testhilfe:** Eine Umgebungsvariable konnte den Keller mit Beispieldaten überschreiben; entfernt.
 
 ### Abweichungen vom Konzept
 
-- **Ansichtsmodelle je Szene** gibt es nicht. Die Szenen lesen den Spielzustand direkt und nutzen die Rechenfunktionen der Engine; `GameSession` und `Navigator` bilden die Präsentationsschicht. Tests gegen Ansichtsmodelle entfallen damit.
+- **Ansichtsmodelle je Szene** gibt es nicht. Die Szenen lesen den Spielzustand direkt und nutzen die Rechenfunktionen der Engine; `GameSession` und `Navigator` bilden die Präsentationsschicht.
 - **Skalierung:** Statt `RescalingCanvas` rechnet `Kit` alle Maße beim Aufbau um; nach jeder Änderung und bei jeder Größenänderung wird der Baum neu aufgebaut.
 - **JSON:** Serialisierung über Reflexion statt Quellgenerator. Für den Browser-Kopf (Trimming, AOT) muss das umgestellt werden.
 - **Gutsausbau:** vier Ausbauten (Gutsschänke, Gästehaus, Brennerei, Schatzkammer) und die Stiftung. Die Sektmanufaktur entfiel; die Schatzkammer wirkt als Preis- und Punktebonus, das Einlagern einzelner Jahrgänge bleibt eine Erweiterung.
 - **Ambitionen** bringen ihre Punkte sofort beim Erreichen (einmalig 40), nicht erst bei Spielende – eine Partie endet, sobald jemand das Punkteziel erreicht.
 - **Prämierung:** Die Noten der drei Juroren stehen als Tafel da; ein Aufdecken Note für Note gibt es noch nicht.
-- **Winterzug:** Im gemeinsamen Zug für Januar und Februar gibt es am Ende des Januars keine neuen Ereignisse, Aufträge oder Exportanfragen, und die Versteigerung rückt nicht vor.
-- **Alte Spielstände:** Version 17 wird gelesen, ältere nicht. Das Laden echter Spielstände aus dem alten Spiel ist ungetestet.
-- **Lizenzhinweise** der NuGet-Pakete werden nicht erzeugt; die Lizenzseite im Menü nennt die Komponenten von Hand.
+- **Winterzug:** Im gemeinsamen Zug für Januar und Februar gibt es am Ende des Januars keine neuen Ereignisse, Aufträge oder Exportanfragen, die Versteigerung rückt nicht vor, und die Zahlungsunfähigkeit zählt nur einmal.
+- **Lizenzhinweise** der NuGet-Pakete werden nicht erzeugt; die Lizenzseite im Menü nennt die Komponenten von Hand und ist nicht gegengeprüft.
+- **Einige Vorschauwerte rechnet die Oberfläche selbst**, weil die Engine dafür keine öffentliche Funktion hat: Ab-Hof-Erlös des Monats und Medaillen-Aussicht (Markt), Unterhalt der Ausbauten (Kontor), Wert einer Charge ab Hof (Keller). Ändern sich die Regeln dort, müssen diese Stellen mit.
 
 ### Offene Punkte
 
-- Eine ganze Partie von Hand durchspielen: jede Aktion einmal auslösen, Tastatur, Hot-Seat, Vorspulen, Versteigerung mit mehreren Menschen, Spielstand laden.
-- Die Szenen stammen aus getrennten Arbeitsgängen; Hilfsbausteine für Flaschen, Sterne und Pillen gibt es deshalb mehrfach (`CellarParts`, `MarketScene`, `VineyardPaint`, `VillagePaint`). Zusammenführen in `Kit`.
-- Die Oberfläche läuft kulturneutral (`AppHost`), weil gezeichnete Pfade aus Zahlen im Text entstehen; sichtbare Zahlen formatiert `Util`.
-- Der Compiler meldet in den Szenen Warnungen zu veralteten SkiaSharp-Aufrufen (`SKPath.MoveTo` u. a.).
-- Balancing der Regelversion 2 mit mehr Seeds; der Genossenschafts-Typ geht in kalten Gebieten (Saale-Unstrut, Sachsen) häufiger pleite als nach Originalregeln.
+- Eine Partie von einem Menschen spielen lassen.
+- Installer bauen und prüfen: Inno Setup installieren (`winget install JRSoftware.InnoSetup`), dann `pwsh installer\build.ps1`.
+- Balancing der Regelversion 2 mit mehr Seeds. Der Genossenschafts-Typ geht in kalten Gebieten häufiger pleite als nach Originalregeln (Saale-Unstrut in beiden Läufen statt in keinem). Der vorsichtige Autopilot kommt in acht Jahren auf rund 340 Punkte, während der Traditionswinzer 600 erreicht – ob das für Menschen zu schwer ist, zeigt erst ein echtes Spiel.
 - Schriften mit freier Lizenz mitliefern, Shader und Animationen (Phase 4).
-- Installer; bisher entsteht ein ZIP je Architektur.
+- Die Szenen stammen aus getrennten Arbeitsgängen; Hilfsbausteine für Flaschen, Sterne, Pillen und Inspektor gibt es deshalb mehrfach (`CellarParts`, `MarketScene`, `OfficeKit`, `VineyardPaint`, `VillagePaint`). Zusammenführen in `Kit`.
+- Der Compiler meldet in den Szenen Warnungen zu veralteten SkiaSharp-Aufrufen (`SKPath.MoveTo` u. a.).
+- Das Paket ist groß (rund 170 MB entpackt, 70 MB als ZIP), weil .NET und WPF mitgeliefert werden.
 
 ## Quellen
 

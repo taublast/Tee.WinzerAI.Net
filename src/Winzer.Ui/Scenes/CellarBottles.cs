@@ -123,7 +123,8 @@ internal static class CellarBottles
         else CellarParts.Head(card, name, $"{vintage} · {(lot.Sparkling ? "Flaschengärung" : "abgefüllt")}");
 
         card.With(CellarParts.QualityRing(CellarParts.Pad, 108, lot.Quality));
-        var price = Market.BottlePrice(lot, player, state);
+        // Erweiterte Regeln: eigener Preisaufschlag ab Hof
+        var price = Js.Round(Market.BottlePrice(lot, player, state) * RulesV2.DirectPriceFactor(state, player) * 100) / 100;
         var wholesale = Market.WholesalePrice(lot, player, state);
         var trend = CellarParts.TrendValue(CellarParts.TrendOf(state, lot));
         const double rx = 186, rw = 306;
@@ -147,7 +148,7 @@ internal static class CellarBottles
         card.With(Kit.Text("Auszeichnungen", CellarParts.Pad, 408, 300, 28, 19, Theme.Wine, bold: true));
         if (lot.Awards.Count == 0)
         {
-            card.With(Kit.Text("Noch keine Medaille. Geprüfte Weine können zur Prämierung.", CellarParts.Pad, 438, CellarParts.Inner, 26, 17, Theme.InkSoft));
+            card.With(Kit.Text("Noch keine Medaille – geprüfte Weine dürfen zur Prämierung.", CellarParts.Pad, 438, CellarParts.Inner, 26, 17, Theme.InkSoft));
         }
         var ay = 438.0;
         var visible = lot.Awards.Count > 3 ? 2 : lot.Awards.Count;

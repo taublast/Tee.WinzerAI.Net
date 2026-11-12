@@ -83,7 +83,7 @@ internal static class OfficeChronicle
             var row = Kit.Box(100, y, 1062, rowHeight - 10, fill, 14);
             row.With(Kit.Box(0, 12, 6, rowHeight - 34, color, 3));
             // Kurze Einträge stehen einzeilig in der Mitte, lange zweizeilig
-            var oneLine = entry.Text.Length < 88;
+            var oneLine = entry.Text.Length <= 100;
             row.With(Kit.Text(entry.Text, 26, oneLine ? 22 : 9, 1012, oneLine ? 30 : 58, 19, Theme.Ink, bold: entry.Tone is not null, maxLines: oneLine ? 1 : 2));
             card.With(row);
         }

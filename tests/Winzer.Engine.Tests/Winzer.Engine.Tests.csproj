@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <None Include="Traces\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Saves\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -48,6 +48,10 @@ public partial class MainWindow : Window
         var previous = surface.Content as SkiaControl;
         surface.Content = app.Build(Root.ActualWidth, Root.ActualHeight);
         previous?.Dispose();
+        // Die Fläche zeichnet nur auf Anforderung. Ohne diese Anforderung bliebe nach einem Neuaufbau das alte Bild stehen,
+        // bis zufällig die Maus über das Fenster fährt – etwa nach einem Zug per Tastatur.
+        surface.Canvas?.Update();
+        surface.InvalidateVisual();
     }
 
     void OnKey(object sender, KeyEventArgs e)
@@ -92,6 +96,18 @@ public partial class MainWindow : Window
         mouse_event(0x0004, 0, 0, 0, UIntPtr.Zero);
         await Task.Delay(120);
         SetCursorPos(before.X, before.Y);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
+
+    /// <summary>Drückt eine echte Taste (virtueller Tastencode) – das Fenster muss vorn liegen.</summary>
+    public async Task RealKey(byte virtualKey)
+    {
+        keybd_event(virtualKey, 0, 0, UIntPtr.Zero);
+        await Task.Delay(60);
+        keybd_event(virtualKey, 0, 0x0002, UIntPtr.Zero);
+        await Task.Delay(120);
     }
 
     /// <summary>Speichert den Fensterinhalt als PNG – für Bildschirmfotos in Tests und Dokumentation.</summary>

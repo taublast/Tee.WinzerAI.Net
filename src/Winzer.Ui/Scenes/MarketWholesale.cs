@@ -144,7 +144,7 @@ public static partial class MarketScene
         card.With(Kit.Button("An den Großhandel verkaufen", 32, 656, 460, 84, () => session.Run(action), ButtonKind.Primary,
             $"{Util.FormatNumber(bottles)} Flaschen · sofort +{Util.FormatEuro(revenue)}", session.Problem(action)));
 
-        var direct = Js.Round(farm * bottles * (1 - Economy.DirectSalesCostShare));
+        var direct = Js.Round(farm * RulesV2.DirectPriceFactor(state, player) * bottles * (1 - Economy.DirectSalesCostShare));
         card.With(Kit.Text(
             $"Zum Vergleich: Ab Hof brächten dieselben Flaschen etwa {Util.FormatEuro(direct)} (nach Vertriebskosten) – dort gehen aber nur rund {Util.FormatNumber(Live.Demand(player))} Flaschen im Monat weg.",
             32, 760, 460, 76, 17, Theme.InkSoft, maxLines: 3));

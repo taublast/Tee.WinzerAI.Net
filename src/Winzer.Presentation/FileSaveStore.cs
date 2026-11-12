@@ -1,9 +1,7 @@
-using System.IO;
 using System.Text.Json;
 using Winzer.Engine;
-using Winzer.Presentation;
 
-namespace Winzer.Desktop;
+namespace Winzer.Presentation;
 
 /// <summary>
 /// Spielstände als JSON-Dateien unter %LOCALAPPDATA%\WinzerAI\Spielstände – derselbe Ort und dasselbe

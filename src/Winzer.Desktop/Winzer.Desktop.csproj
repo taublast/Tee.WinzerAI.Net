@@ -6,10 +6,25 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>WinzerAI</AssemblyName>
     <RootNamespace>Winzer.Desktop</RootNamespace>
+    <Product>WinzerAI</Product>
+    <!-- Ausgeliefert wird als Ordner: Als einzelne EXE startet WPF unter .NET 11 nicht (siehe installer/build.ps1) -->
+    <SatelliteResourceLanguages>de;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Winzer.Ui\Winzer.Ui.csproj" />
   </ItemGroup>
+
+  <!-- SkiaSharp und HarfBuzz bringen rund 100 MB Debug-Symbole mit, die niemand braucht -->
+  <Target Name="RemoveNativeSymbols" AfterTargets="Publish">
+    <ItemGroup>
+      <NativeSymbols Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(NativeSymbols)" />
+  </Target>
 
 </Project>

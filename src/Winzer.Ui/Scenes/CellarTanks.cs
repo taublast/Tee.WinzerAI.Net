@@ -175,7 +175,7 @@ internal static class CellarTanks
         var card = CellarParts.Inspector();
         var (name, vintage) = CellarParts.NameOf(batch);
         var vessel = batch.Barrique ? "Barriquefass" : "Edelstahltank";
-        if (batch.Adulterated is { } method) CellarParts.Head(card, name, $"Jg. {batch.Vintage} · {vessel} · gepanscht: {Economy.Adulteration[method].Name}", Theme.Alert);
+        if (batch.Adulterated is { } method) CellarParts.Head(card, name, $"Jg. {batch.Vintage} · {(batch.Barrique ? "Barrique" : "Tank")} · gepanscht: {Economy.Adulteration[method].Name}", Theme.Alert);
         else CellarParts.Head(card, name, $"{vintage} · {vessel}");
 
         card.With(CellarParts.QualityRing(CellarParts.Pad, 108, batch.Quality));
@@ -191,7 +191,7 @@ internal static class CellarTanks
         card.With(Kit.Row("Reife", batch.MonthsUntilReady > 0 ? $"noch {CellarParts.Months(batch.MonthsUntilReady)}" : "ausgebaut", rx, 210, rw,
             batch.MonthsUntilReady > 0 ? Theme.Ink : Theme.Good, 18));
         card.With(Kit.Row("Markttrend", trend.Text, rx, 244, rw, trend.Color, 18));
-        card.With(Kit.Row("Wert ab Hof", $"≈ {Util.FormatEuro(Market.BottlePrice(probe, player, state) * bottlesAll)}", rx, 278, rw, size: 18));
+        card.With(Kit.Row("Wert ab Hof", $"≈ {Util.FormatEuro(Market.BottlePrice(probe, player, state) * RulesV2.DirectPriceFactor(state, player) * bottlesAll)}", rx, 278, rw, size: 18));
         card.With(CellarParts.Divider(322));
 
         var share = nav.Amount("keller.amount");
@@ -248,7 +248,7 @@ internal static class CellarTanks
                 var effect = new List<string>();
                 if (info.VolumeFactor != 1) effect.Add($"{(info.VolumeFactor > 1 ? "+" : "−")}{Math.Abs(Js.Round((info.VolumeFactor - 1) * 100))} % Menge");
                 if (info.QualityDelta != 0) effect.Add($"{(info.QualityDelta > 0 ? "+" : "−")}{Util.FormatNumber(Math.Abs(info.QualityDelta))} Güte");
-                if (info.LevelSteps > 0) effect.Add(info.LevelSteps == 1 ? "eine Stufe höher" : $"{info.LevelSteps} Stufen höher");
+                if (info.LevelSteps > 0) effect.Add(info.LevelSteps == 1 ? "eine Stufe höher" : info.LevelSteps == 2 ? "zwei Stufen höher" : $"{info.LevelSteps} Stufen höher");
                 card.With(CellarParts.Action($"Panschen: {info.Name}", CellarParts.Pad, y, CellarParts.Inner, 72, () => session.Run(action), ButtonKind.Secondary,
                     $"{string.Join(", ", effect)} · {Js.Round(info.Detection * 100)} % Risiko bei der Prüfung", session.Problem(action), 19));
                 y += 80;

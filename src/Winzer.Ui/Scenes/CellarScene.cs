@@ -128,7 +128,8 @@ internal static class CellarParts
     public static SkiaControl Divider(double y) => Kit.Box(Pad, y, Inner, 2, Theme.PaperLine, 1);
 
     /// <summary>
-    /// Wie <see cref="Kit.Button"/>, aber ein langer Sperrgrund wird auf zwei Zeilen umbrochen statt abgeschnitten.
+    /// Aktion mit Vorschau und Sperrgrund. Ein langer Sperrgrund bekommt hier sicher zwei Zeilen
+    /// (die Zeilenhöhe von <see cref="Kit.Button"/> reicht dafür im Inspektor nicht immer).
     /// </summary>
     public static SkiaShape Action(string title, double x, double y, double w, double h, Action onTap, ButtonKind kind,
         string? sub, string? problem, double fontSize = 21)

@@ -55,4 +55,14 @@ src\Winzer.Desktop\bin\Debug\net11.0-windows\WinzerAI.exe --shot bild.png --scen
 
 `--shot` spielt eine Partie die angegebenen Züge weiter (`--play` liest, füllt ab und leiht dabei), zeigt Szene und Reiter, speichert ein Bild (1280 × 720) und beendet sich. Mit den erweiterten Regeln hat ein Jahr 14 Züge, `--months 9` ist also die erste Oktoberhälfte. Weitere Schalter: `--seed`, `--region`, `--rules 1|2`, `--overlay Lexicon|Menu|Decision|Plan|Review|Show|Auto`, `--otab`, `--summary`, `--menu`.
 
-`--click 1750,1015` klickt vor dem Foto mit der echten Maus an eine Stelle der Entwurfsfläche (mehrfach angebbar, bewegt kurz den Zeiger). Neben dem Bild entsteht `bild.png.txt` mit dem Stand danach (Szene, Zug, Konto, Chargen …) – so lässt sich prüfen, ob eine Schaltfläche wirklich wirkt.
+`--click 1750,1015` klickt vor dem Foto mit der echten Maus an eine Stelle der Entwurfsfläche, `--key Space` drückt eine echte Taste (`Space`, `Escape`, `Tab`, `Enter`, Ziffer oder Buchstabe); beides mehrfach und in dieser Reihenfolge. Neben dem Bild entsteht `bild.png.txt` mit dem Stand danach (Szene, Zug, Konto, Chargen …) – so lässt sich prüfen, ob eine Schaltfläche wirklich wirkt. Mehrere Prüfläufe gleichzeitig warten aufeinander, weil Klicks das vorderste Fenster treffen.
+
+## Eine ganze Partie von selbst spielen
+
+```powershell
+WinzerAI.exe --selbstspiel ordner [--seed 7] [--rules 1|2] [--region mosel] [--humans 2] [--target 600] [--wild] [--delay 70]
+```
+
+Der Autopilot (`Winzer.Presentation.AutoPilot`) zieht für die Menschen über die Spielsitzung; nach jedem Zug werden reihum alle Szenen, Reiter und Überlagerungen mit dem aktuellen Stand gezeichnet. Im Ordner landen Bildschirmfotos und `bericht.txt` mit Verlauf, benutzten Zugarten, der Zahl der Zeichenvorgänge und allen Fehlern. `--wild` lässt den Piloten auch riskante Züge ausprobieren (Panschen, Sabotage, Eiswein-Wette, Roden …). Der Lauf endet mit Code 0, wenn die Partie zu Ende gespielt wurde und nichts schiefging.
+
+Das Fenster bleibt dabei vorn. Ein verdecktes Fenster zeichnet nicht – dann prüfte der Lauf nur den Aufbau, nicht das Malen; die Zahl der Zeichenvorgänge im Bericht zeigt, ob wirklich gemalt wurde.

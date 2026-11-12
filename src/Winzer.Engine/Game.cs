@@ -583,6 +583,8 @@ public static class Game
                 break;
             case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate:
                 RulesV2.Apply(next, player, action);
+                // Eine Spende bringt Punkte und kann das Punkteziel erreichen
+                if (action is GameAction.Donate) CheckWinner(next);
                 break;
             case GameAction.EndTurn:
                 EndTurn(next);
@@ -737,7 +739,13 @@ public static class Game
 
         if (state.Month == 12)
         {
-            if (v2) RulesV2.EndYear(state);
+            if (v2)
+            {
+                // Jahresziel und Schatzkammer bringen Punkte – wer damit das Ziel erreicht, gewinnt jetzt und nicht erst,
+                // wenn irgendwann jemand einen Wein prüfen lässt
+                RulesV2.EndYear(state);
+                CheckWinner(state);
+            }
             EndOfYear(state);
             state.Month = 1;
             state.Year++;

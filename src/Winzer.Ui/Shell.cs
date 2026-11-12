@@ -36,7 +36,8 @@ public static class Shell
         });
         frame.With(stage, Hud(session), Rail(session));
 
-        if (session.Over) frame.With(GameOverBanner(session, app));
+        // Das Banner zum Spielende liegt nur über der Gutsansicht – in den Szenen verdeckte es die Reiter
+        if (session.Over && session.Nav.Scene == Scene.Gut) frame.With(GameOverBanner(session, app));
         if (session.Summary is { } summary) frame.With(Overlays.Summary(session, summary));
         else if (session.LiveLot is { } lot) frame.With(AuctionOverlay.Build(session, lot));
         else if (session.Nav.Overlay == Overlay.Decision && session.Player.Decision is not null && !session.Over) frame.With(Overlays.Decision(session));
@@ -234,6 +235,14 @@ public static class Shell
             item.Tap(() => session.Nav.Go(scene));
             rail.With(item);
             y += 128;
+        }
+        if (session.Over)
+        {
+            // Partie vorbei: Von jeder Szene aus zurück ins Menü
+            rail.With(Kit.Box(16, 894, 80, 80, radius: 18, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
+                .With(Kit.Text("Ende", 0, 16, 80, 26, 19, Theme.Ink, bold: true, align: Align.Center))
+                .With(Kit.Text("Menü ›", 0, 44, 80, 22, 15, Theme.Ink, align: Align.Center))
+                .Tap(() => session.Nav.Show(Overlay.Menu)));
         }
         // Zug beenden von jeder Szene aus
         if (!session.Over)

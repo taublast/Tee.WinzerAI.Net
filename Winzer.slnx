@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Winzer.Engine.Tests/Winzer.Engine.Tests.csproj" />
+    <Project Path="tests/Winzer.Presentation.Tests/Winzer.Presentation.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Winzer.Sim/Winzer.Sim.csproj" />

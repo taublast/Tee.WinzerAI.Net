@@ -550,6 +550,10 @@ public static class Ai
             Act(new GameAction.Repay(Math.Min(Me().Loan, Math.Floor(surplus / 1000) * 1000)));
         }
 
+        // Abweichung vom Original (dort ein Fehler): Die Weinprüfung oder ein gelieferter Auftrag kann mitten im Zug
+        // einen Sieger feststellen. Dann gibt es keinen Zug mehr zu beenden – das Original scheiterte hier mit
+        // „Das Spiel ist beendet“ und die Partie blieb stehen.
+        if (!string.IsNullOrEmpty(s.WinnerId) || s.Finished) return s;
         return Game.ApplyAction(s, new GameAction.EndTurn());
     }
 

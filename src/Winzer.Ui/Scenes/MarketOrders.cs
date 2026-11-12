@@ -39,7 +39,7 @@ public static partial class MarketScene
         }
 
         scene.With(ExportPanel(session));
-        scene.With(FarmGatePanel(state, player));
+        scene.With(FarmGatePanel(session));
         scene.With(selected is null ? OrdersIntro(player) : OrderInspector(session, selected, player.Orders.Contains(selected), now));
     }
 
@@ -76,7 +76,7 @@ public static partial class MarketScene
         card.With(Chip($"+{Util.FormatNumber(order.Points)} Punkte", SlotWidth - 126, 147, 104, Theme.PaperLine, Theme.Ink, 14));
         card.With(Kit.Text(WishText(order), 22, 50, SlotWidth - 44, 70, 17, Theme.Ink, maxLines: 3));
         card.With(Kit.Text($"{Price(order.PricePerBottle)}/Fl. · zusammen {Util.FormatEuro(Orders.OrderValue(order))}", 22, 124, SlotWidth - 44, 26, 17, Theme.Wine, bold: true));
-        card.With(Kit.Text($"Lieferung bis {Orders.DeadlineText(order)}", 22, 150, SlotWidth - 156, 26, 16, Theme.InkSoft));
+        card.With(Kit.Text($"Liefern bis {Orders.DeadlineText(order)}", 22, 150, SlotWidth - 150, 26, 16, Theme.InkSoft));
         card.With(Meter(22, 184, SlotWidth - 44, available / order.Bottles, full ? Theme.Good : Theme.Wine));
         card.With(Kit.Text($"Passend im Lager: {Util.FormatNumber(available)} / {Util.FormatNumber(order.Bottles)} Fl.", 22, 199, SlotWidth - 44, 24, 16, full ? Theme.Good : Theme.InkSoft, bold: full));
         card.With(accepted
@@ -232,8 +232,8 @@ public static partial class MarketScene
             panel.With(Kit.Paint(606, 20, 130, 130, (c, w, h) =>
                 Draw.Ring(c, 65, 65, 52, 13, done / (double)Math.Max(1, contract.Months), Theme.SkCream.WithAlpha(50), Theme.SkGold)));
             panel.With(Kit.Text(contract.MonthsLeft.ToString(), 606, 52, 130, 44, 34, Theme.Cream, bold: true, serif: true, align: Align.Center));
-            panel.With(Kit.Text(contract.MonthsLeft == 1 ? "Monat noch" : "Monate noch", 606, 92, 130, 22, 15, Theme.CreamSoft, align: Align.Center));
-            panel.With(Kit.Text($"bringt {Util.FormatEuro(Js.Round(terms.BottlesPerMonth * terms.PricePerBottle))} im Monat", 566, 158, 210, 24, 16, Theme.CreamSoft, align: Align.Center));
+            panel.With(Kit.Text(contract.MonthsLeft == 1 ? "Monat noch" : "Monate noch", 586, 94, 170, 22, 14, Theme.CreamSoft, align: Align.Center));
+            panel.With(Kit.Text($"bringt {Util.FormatEuro(Js.Round(terms.BottlesPerMonth * terms.PricePerBottle))} im Monat", 566, 150, 210, 24, 16, Theme.CreamSoft, align: Align.Center));
             panel.With(contract.MissedMonths > 0
                 ? Kit.Text($"{contract.MissedMonths} {(contract.MissedMonths == 1 ? "Monat" : "Monate")} mit Fehlmengen – der Punktebonus ist verloren. Fehlende Flaschen kosten {Util.FormatEuro(Economy.ExportPenaltyPerBottle)} Strafe je Flasche.",
                     24, 176, 742, 50, 17, Theme.Warn, bold: true, maxLines: 2)
@@ -258,13 +258,15 @@ public static partial class MarketScene
             ready += lot.Bottles;
             var count = Math.Min(Math.Max(0, demand - sold), lot.Bottles);
             sold += count;
-            revenue += count * Market.BottlePrice(lot, player, state);
+            revenue += count * Market.BottlePrice(lot, player, state) * RulesV2.DirectPriceFactor(state, player);
         }
         return (ready, sold, Js.Round(revenue * (1 - Economy.DirectSalesCostShare)));
     }
 
-    static SkiaControl FarmGatePanel(GameState state, Player player)
+    static SkiaControl FarmGatePanel(GameSession session)
     {
+        var state = session.State;
+        var player = session.Player;
         var panel = Kit.Glass(834, 716, 396, 244);
         var demand = Live.Demand(player);
         var (ready, sold, net) = FarmGate(state, player);
@@ -275,7 +277,13 @@ public static partial class MarketScene
         panel.With(Meter(24, 128, 348, demand > 0 ? ready / demand : 0, ready >= demand ? Theme.GoodLight : Theme.Warn, Theme.GlassLine));
         panel.With(DarkRow("Verkaufsbereit", $"{Util.FormatNumber(ready)} Fl.", 24, 146, 348, ready >= demand ? Theme.GoodLight : Theme.Warn, 17));
         panel.With(DarkRow("Voraussichtlich", sold > 0 ? $"{Util.FormatNumber(sold)} Fl. · +{Util.FormatEuro(net)}" : "kein Verkauf", 24, 174, 348, size: 17));
-        panel.With(Kit.Text("Verkauf am Monatsende, nach Vertriebskosten.", 24, 206, 348, 24, 15, Theme.CreamSoft));
+        if (RulesV2.On(state))
+        {
+            var level = Js.Round(player.PriceLevel * 100);
+            panel.With(Kit.Button($"Preise ab Hof: {(level == 0 ? "Listenpreis" : $"{(level > 0 ? "+" : "−")}{Math.Abs(level)} %")} ›", 24, 202, 348, 36,
+                () => { session.Nav.Show(Overlay.Plan); session.Nav.SetOverlayTab(2); }, ButtonKind.Dark, fontSize: 16, align: Align.Center));
+        }
+        else panel.With(Kit.Text("Verkauf am Monatsende, nach Vertriebskosten.", 24, 206, 348, 24, 15, Theme.CreamSoft));
         return panel;
     }
 }

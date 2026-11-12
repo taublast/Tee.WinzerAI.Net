@@ -58,7 +58,7 @@ public static partial class MarketScene
         var wait = MonthsUntil(competition.Month, state.Month);
         var monthName = Game.MonthNames[competition.Month - 1];
         panel.With(Kit.Text(competition.Name, 28, 14, 560, 42, 29, Theme.Gold, bold: true, serif: true));
-        panel.With(Kit.Text(wait == 0 ? $"Wertung am Ende dieses Monats ({monthName}) – letzte Gelegenheit zum Anmelden!" : $"Wertung Ende {monthName} – noch {wait} {(wait == 1 ? "Monat" : "Monate")} zum Anmelden",
+        panel.With(Kit.Text(wait == 0 ? $"Wertung Ende {monthName} – letzte Gelegenheit zum Anmelden!" : $"Wertung Ende {monthName} – noch {wait} {(wait == 1 ? "Monat" : "Monate")} zum Anmelden",
             28, 58, 580, 28, 19, wait == 0 ? Theme.Gold : Theme.Cream, bold: wait == 0));
         panel.With(Kit.Text($"Gebühr {Util.FormatEuro(competition.Fee)} je Wein · angemeldet {player.CompetitionEntries.Count} / {competition.MaxEntries}",
             28, 88, 580, 28, 19, Theme.Cream));
@@ -137,7 +137,7 @@ public static partial class MarketScene
         var card = Kit.Card(x, y, LotWidth, 306, 16);
         card.With(Bottle(lot, 18, 16, 58, 174));
         card.With(Kit.Text(GrapeName(lot), 90, 16, 186, 54, 19, Theme.Ink, bold: true, maxLines: 2));
-        card.With(Kit.Text($"{KindName(lot)} · Jg. {lot.Vintage}", 90, 70, 186, 24, 16, Theme.InkSoft));
+        card.With(Kit.Text(KindName(lot).Length > 14 ? KindName(lot) : $"{KindName(lot)} · Jg. {lot.Vintage}", 90, 70, 186, 24, 16, Theme.InkSoft));
         card.With(Kit.Text("Erwartete Wertung", 90, 100, 186, 22, 15, Theme.InkSoft));
         card.With(Kit.Text(Util.FormatNumber(score), 90, 118, 80, 44, 32, Theme.Wine, bold: true, serif: true));
         card.With(Kit.Text($"± {Util.FormatNumber(JurySpread)}", 150, 132, 60, 24, 16, Theme.InkSoft));

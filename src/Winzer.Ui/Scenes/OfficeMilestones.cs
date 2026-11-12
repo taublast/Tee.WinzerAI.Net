@@ -9,7 +9,7 @@ namespace Winzer.Ui.Scenes;
 internal static class OfficeMilestones
 {
     const string PageKey = "kontor.erfolge";
-    const int PerPage = 12;
+    const int PerPage = 9;
 
     static (string Light, string Dark) TierColors(Tier tier) => tier switch
     {
@@ -53,13 +53,13 @@ internal static class OfficeMilestones
             var def = open[i];
             var p = Progress(state, player, def);
             var card = Kit.Card(28 + i * 407, 96, 388, 196);
-            card.With(Kit.Text(i == 0 ? "Nächstes Ziel" : $"Ziel {i + 1}", 132, 12, 240, 24, 16, Theme.Wine, bold: true));
+            card.With(Kit.Text(i == 0 ? "Nächstes Ziel" : $"Ziel {i + 1}", 132, 12, 110, 24, 16, Theme.Wine, bold: true));
+            card.With(Kit.Text(Reward(def.Tier), 232, 12, 140, 24, 16, Theme.InkSoft, align: Align.End));
             card.With(Medal(14, 44, 106, def, false, p.Ratio));
             card.With(Kit.Text(def.Name, 132, 34, 244, 34, 23, Theme.Ink, bold: true, serif: true));
             card.With(Kit.Text(def.Text, 132, 70, 244, 64, 15, Theme.InkSoft, maxLines: 3));
             card.With(OfficeKit.Meter(132, 140, 240, 12, p.Ratio, Theme.Wine));
-            card.With(Kit.Text(p.Target > 1 ? $"{Util.FormatNumber(p.Value)} / {Util.FormatNumber(p.Target)}" : "noch offen", 132, 157, 116, 24, 16, Theme.Ink, bold: true));
-            card.With(Kit.Text(Reward(def.Tier), 240, 157, 132, 24, 16, Theme.InkSoft, align: Align.End));
+            card.With(Kit.Text(p.Target > 1 ? $"{Util.FormatNumber(p.Value)} / {Util.FormatNumber(p.Target)}" : "noch offen", 132, 157, 240, 24, 16, Theme.Ink, bold: true));
             scene.With(card);
         }
 
@@ -75,30 +75,31 @@ internal static class OfficeMilestones
             var def = shown[i];
             var done = player.Milestones.TryGetValue(def.Id, out var when);
             var p = Progress(state, player, def);
-            var x = 28 + i % 4 * 303.5;
-            var y = 358 + i / 4 * 202;
-            var cell = Kit.Card(x, y, 291.5, 192, 14);
-            if (done) cell.With(Kit.Box(0, 0, 291.5, 192, Theme.C("#144d7a2a"), 14, Theme.Good, 2));
-            cell.With(Medal(12, 12, 84, def, done, p.Ratio));
-            cell.With(Kit.Text(def.Name, 106, 12, 176, 50, 18, Theme.Ink, bold: true, maxLines: 2));
-            cell.With(Kit.Text(Reward(def.Tier), 106, 64, 176, 24, 15, Theme.InkSoft));
-            cell.With(Kit.Text(def.Text, 14, 102, 264, 44, 15, Theme.InkSoft, maxLines: 2));
+            const double width = 392.6;
+            var x = 28 + i % 3 * 404.7;
+            var y = 358 + i / 3 * 202;
+            var cell = Kit.Card(x, y, width, 192, 14);
+            if (done) cell.With(Kit.Box(0, 0, width, 192, Theme.C("#144d7a2a"), 14, Theme.Good, 2));
+            cell.With(Medal(14, 14, 92, def, done, p.Ratio));
+            cell.With(Kit.Text(def.Name, 120, 14, 258, 30, 20, Theme.Ink, bold: true));
+            cell.With(Kit.Text(Reward(def.Tier), 120, 43, 258, 24, 15, Theme.Wine, bold: true));
+            cell.With(Kit.Text(def.Text, 120, 68, 258, 66, 15, Theme.InkSoft, maxLines: 3));
             if (done)
             {
-                cell.With(Kit.Paint(14, 156, 22, 22, (c, w, h) =>
+                cell.With(Kit.Paint(120, 150, 22, 22, (c, w, h) =>
                 {
                     using var fill = Draw.Fill(SKColor.Parse("#4d7a2a"));
                     c.DrawCircle(11, 11, 11, fill);
                     using var tick = Draw.Stroke(SKColor.Parse("#fbf4e4"), 2.6f);
                     Draw.Path(c, "M6 11.5 l3.5 3.5 6.5 -7.5", tick);
                 }));
-                cell.With(Kit.Text(Orders.MonthText(when), 44, 154, 234, 26, 17, Theme.Good, bold: true));
+                cell.With(Kit.Text(Orders.MonthText(when), 150, 148, 228, 26, 17, Theme.Good, bold: true));
             }
             else
             {
-                cell.With(OfficeKit.Meter(14, 162, 150, 10, p.Ratio, Theme.Wine));
+                cell.With(OfficeKit.Meter(120, 156, 110, 10, p.Ratio, Theme.Wine));
                 cell.With(Kit.Text(p.Target > 1 ? $"{Util.FormatNumber(p.Value)} / {Util.FormatNumber(p.Target)}" : "noch offen",
-                    170, 154, 108, 24, 15, Theme.Ink, bold: true, align: Align.End));
+                    236, 148, 142, 24, 15, Theme.Ink, bold: true, align: Align.End));
             }
             scene.With(cell);
         }

@@ -241,10 +241,12 @@ public static class OfficeScene
             () => session.Nav.Select(AmountKey, "max"), 17));
 
         var rate = Economy.LoanInterestRate / 12;
-        var borrowProblem = borrow <= 0 ? "Der Kreditrahmen ist ausgeschöpft." : session.Problem(new GameAction.Borrow(borrow));
+        var over = session.Over ? "Die Partie ist beendet." : null;
+        var borrowProblem = over ?? (borrow <= 0 || free <= 0 ? "Der Kreditrahmen ist ausgeschöpft." : session.Problem(new GameAction.Borrow(borrow)));
         card.With(Kit.Button($"{Util.FormatEuro(borrow)} aufnehmen", 32, 530, 460, 84, () => session.Run(new GameAction.Borrow(borrow)),
             ButtonKind.Primary, $"sofort aufs Konto · Zinsen + {Util.FormatEuro(Js.Round(borrow * rate))} im Monat", borrowProblem));
-        var repayProblem = player.Loan <= 0 ? "Es ist kein Kredit offen."
+        var repayProblem = over is not null ? over
+            : player.Loan <= 0 ? "Es ist kein Kredit offen."
             : repay <= 0 ? "Nicht genug Geld auf dem Konto."
             : session.Problem(new GameAction.Repay(repay)) is { } problem
                 ? (repay > player.Loan ? $"Offen sind nur {Util.FormatEuro(player.Loan)}." : problem)
@@ -301,7 +303,7 @@ public static class OfficeScene
         {
             shop.With(Kit.Button("Online-Shop starten", 16, 372, 559, 64, () => session.Run(new GameAction.BuyOnlineShop()), ButtonKind.Primary,
                 $"kostet {Util.FormatEuro(Economy.OnlineShopCost)} · + {Util.FormatNumber(shopGain)} Flaschen Absatz im Monat",
-                session.Problem(new GameAction.BuyOnlineShop())));
+                session.Over ? "Die Partie ist beendet." : session.Problem(new GameAction.BuyOnlineShop())));
         }
         scene.With(shop);
 
@@ -320,7 +322,7 @@ public static class OfficeScene
         {
             vinothek.With(Kit.Button("Vinothek bauen", 16, 372, 559, 64, () => session.Run(new GameAction.BuildVinothek()), ButtonKind.Primary,
                 $"kostet {Util.FormatEuro(Economy.VinothekCost)} · + {percent} % Absatz · + {Util.FormatNumber(Economy.VinothekReputation)} Bekanntheit",
-                session.Problem(new GameAction.BuildVinothek())));
+                session.Over ? "Die Partie ist beendet." : session.Problem(new GameAction.BuildVinothek())));
         }
         scene.With(vinothek);
 
@@ -432,7 +434,7 @@ public static class OfficeScene
             "Bekanntheit und Ausschank im Markt", fontSize: 19));
         if (v2)
         {
-            card.With(Kit.Button("Gutsausbau und Stiftung ›", 32, top + 170, 460, 60, () =>
+            card.With(Kit.Button("Weitere Ausbauten & Stiftung ›", 32, top + 170, 460, 60, () =>
             {
                 session.Nav.SetOverlayTab(1);
                 session.Nav.Show(Overlay.Plan);
