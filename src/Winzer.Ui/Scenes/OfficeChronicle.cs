@@ -130,8 +130,8 @@ internal static class OfficeChronicle
         var previous = Target(sheet.Year - 1);
         var next = Target(sheet.Year + 1);
         card.With(Kit.Box(32, 112, 460, 76, Theme.C("#40d9c7a3"), 18));
-        card.With(Kit.IconButton("‹", 44, 122, 56, () => open(previous ?? index), dark: false, enabled: previous is not null));
-        card.With(Kit.IconButton("›", 424, 122, 56, () => open(next ?? index), dark: false, enabled: next is not null));
+        card.With(Kit.IconButton("‹", 44, 122, 56, () => open(previous ?? index), dark: false, enabled: previous is not null, tip: "Vorheriger Eintrag"));
+        card.With(Kit.IconButton("›", 424, 122, 56, () => open(next ?? index), dark: false, enabled: next is not null, tip: "Nächster Eintrag"));
         card.With(Kit.Text($"Jahr {sheet.Year}", 110, 126, 304, 46, 33, Theme.Ink, bold: true, serif: true, align: Align.Center));
 
         // Zwölf Monate

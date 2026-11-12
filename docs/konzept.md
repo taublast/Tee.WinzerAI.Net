@@ -341,7 +341,7 @@ Stand 12.11.2026. Maßgeblich ist der Code; diese Liste sagt, was davon geprüft
 - **Skalierung:** Statt `RescalingCanvas` rechnet `Kit` alle Maße beim Aufbau um; nach jeder Änderung und bei jeder Größenänderung wird der Baum neu aufgebaut.
 - **JSON:** Serialisierung über Reflexion statt Quellgenerator. Für den Browser-Kopf (Trimming, AOT) muss das umgestellt werden.
 - **Gutsausbau:** vier Ausbauten (Gutsschänke, Gästehaus, Brennerei, Schatzkammer) und die Stiftung. Die Sektmanufaktur entfiel; die Schatzkammer wirkt als Preis- und Punktebonus, das Einlagern einzelner Jahrgänge bleibt eine Erweiterung.
-- **Ambitionen** bringen ihre Punkte sofort beim Erreichen (einmalig 40), nicht erst bei Spielende – eine Partie endet, sobald jemand das Punkteziel erreicht.
+- **Ambitionen** bringen ihre Punkte sofort beim Erreichen (einmalig, je nach Schwierigkeit 15 bis 60; der Großgrundbesitzer verlangt 20 ha – 30 ha waren in Probepartien über zehn Jahre nicht ohne Pleite zu erreichen), nicht erst bei Spielende – eine Partie endet, sobald jemand das Punkteziel erreicht.
 - **Prämierung:** Die Noten der drei Juroren stehen als Tafel da; ein Aufdecken Note für Note gibt es noch nicht.
 - **Winterzug:** Im gemeinsamen Zug für Januar und Februar gibt es am Ende des Januars keine neuen Ereignisse, Aufträge oder Exportanfragen, die Versteigerung rückt nicht vor, und die Zahlungsunfähigkeit zählt nur einmal.
 - **Lizenzhinweise** der NuGet-Pakete werden nicht erzeugt; die Lizenzseite im Menü nennt die Komponenten von Hand und ist nicht gegengeprüft.

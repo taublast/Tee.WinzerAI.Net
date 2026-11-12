@@ -9,10 +9,17 @@ public sealed record GoalDef(
     Func<GameState, Player, bool> Available,
     Func<GameState, Player, (double Value, double Target)> Progress);
 
-/// <summary>Ambition: geheimes Fernziel, das beim Erreichen einmalig Punkte bringt</summary>
+/// <summary>
+/// Ambition: geheimes Fernziel, das beim Erreichen einmalig Punkte bringt. Die Punkte richten sich danach, wie schwer
+/// das Ziel zu erreichen ist – wer viel will, muss viel wagen.
+/// </summary>
 public sealed record AmbitionDef(
-    string Id, string Icon, string Name, string Text,
-    Func<GameState, Player, (double Value, double Target)> Progress);
+    string Id, string Icon, string Name, string Text, double Points,
+    Func<GameState, Player, (double Value, double Target)> Progress)
+{
+    /// <summary>Einstufung für die Anzeige, abgeleitet aus den Punkten</summary>
+    public string Difficulty => Points >= 50 ? "schwer" : Points >= 25 ? "mittel" : "leicht";
+}
 
 /// <summary>Ausbau des Guts</summary>
 public sealed record BuildingDef(string Id, string Icon, string Name, double Cost, double MonthlyCost, string Text);
@@ -259,23 +266,33 @@ public static class RulesV2
 
     // ---- Ambitionen ----
 
-    public const double AmbitionPoints = 40;
     public const int AmbitionCount = 2;
     const int CleanYears = 7;
+    /// <summary>Fläche für den Großgrundbesitzer</summary>
+    public const double EstateHectares = 20;
 
+    // Punkte nach Schwierigkeit, gemessen an Probepartien über zehn Jahre mit vier Gütern im selben Gebiet:
+    // - Saubermann tritt von selbst ein, wenn man nichts Unrechtes tut (praktisch immer, in Jahr 8).
+    // - Sekt ist eine Frage des Entschlusses, sobald ein Kellermeister da ist.
+    // - Zwei Exportverträge brauchen Bekanntheit und zwei Jahre lückenlose Lieferung.
+    // - Lunaris erreicht, wer konsequent umstellt, um Jahr 6 – bezahlt aber mit Ertrag und Kosten.
+    // - Drei Goldmedaillen mit einer Sorte schafften gut zwei Drittel der soliden Güter, im Mittel in Jahr 6.
+    // - Land ist knapp: Rund 45 ha kommen in zehn Jahren für alle zusammen unter den Hammer. 30 ha erreichte kein
+    //   solide wirtschaftendes Gut; wer es erzwang, ging in zwei von drei Partien pleite. 20 ha schaffte etwa jedes
+    //   neunte Gut nebenbei und etwa jedes vierte, das gezielt bis zum Schätzwert mitbot.
     public static readonly AmbitionDef[] Ambitions =
     [
-        new("sortenkoenig", "👑", "Sortenkönig", "Gewinne drei Goldmedaillen mit derselben Rebsorte.",
+        new("sortenkoenig", "👑", "Sortenkönig", "Gewinne drei Goldmedaillen mit derselben Rebsorte.", 30,
             (s, p) => (p.GoldByGrape.Count == 0 ? 0 : p.GoldByGrape.Values.Max(), 3)),
-        new("grossgrund", "🗺️", "Großgrundbesitzer", "Bewirtschafte 30 Hektar.",
-            (s, p) => (Market.TotalHectares(p), 30)),
-        new("biovorreiter", "🌙", "Bio-Vorreiter", "Erreiche das Lunaris-Siegel.",
+        new("grossgrund", "🗺️", "Großgrundbesitzer", $"Bewirtschafte {Util.JsNumber(EstateHectares)} Hektar.", 60,
+            (s, p) => (Market.TotalHectares(p), EstateHectares)),
+        new("biovorreiter", "🌙", "Bio-Vorreiter", "Erreiche das Lunaris-Siegel.", 30,
             (s, p) => (p.BioLabel is { } label ? Array.IndexOf(BioData.BioOrder, label) + 1 : 0, 3)),
-        new("exportmeister", "🌍", "Exportmeister", "Erfülle zwei Exportverträge vollständig.",
+        new("exportmeister", "🌍", "Exportmeister", "Erfülle zwei Exportverträge vollständig.", 25,
             (s, p) => (p.Stats.ExportsCompleted, 2)),
-        new("sektbaron", "🍾", "Sektbaron", "Setze viermal Sekt an.",
+        new("sektbaron", "🍾", "Sektbaron", "Setze viermal Sekt an.", 20,
             (s, p) => (p.Stats.Sekt, 4)),
-        new("saubermann", "🕊️", "Saubermann", $"Wirtschafte {CleanYears} Jahre, ohne je zu panschen oder zu sabotieren.",
+        new("saubermann", "🕊️", "Saubermann", $"Wirtschafte {CleanYears} Jahre, ohne je zu panschen oder zu sabotieren.", 15,
             (s, p) => (p.Tainted ? 0 : Math.Min(CleanYears, s.Year - 1), CleanYears)),
     ];
 
@@ -297,9 +314,9 @@ public static class RulesV2
             var (value, target) = ambition.Progress(state, player);
             if (value < target) continue;
             player.AmbitionsDone.Add(id);
-            player.Points += AmbitionPoints;
+            player.Points += ambition.Points;
             // Nur der Spieler selbst erfährt davon – Ambitionen bleiben geheim
-            Util.AddLog(state, player.Id, $"{ambition.Icon} Ambition erfüllt: {ambition.Name}! +{Util.JsNumber(AmbitionPoints)} Punkte.", LogTone.Good);
+            Util.AddLog(state, player.Id, $"{ambition.Icon} Ambition erfüllt: {ambition.Name}! +{Util.JsNumber(ambition.Points)} Punkte.", LogTone.Good);
         }
     }
 
@@ -448,7 +465,7 @@ public static class RulesV2
         if (!On(state)) yield break;
         if (player.Ambitions.Count < AmbitionCount)
         {
-            yield return new Hint { Area = HintArea.Hof, Important = true, Text = "Wähle deine zwei Ambitionen – geheime Fernziele, die je 40 Punkte bringen." };
+            yield return new Hint { Area = HintArea.Hof, Important = true, Text = "Wähle deine zwei Ambitionen – geheime Fernziele. Leichte bringen wenige Punkte, schwere viele." };
         }
         if (player.Goal is null && player.GoalOffers.Count > 0)
         {

@@ -161,7 +161,7 @@ public class RulesV2Tests
         var before = state.Players[0].Points;
         state = EndTurn(state);
         // Im selben Zug können Meilensteine hinzukommen, deshalb „mindestens“
-        Assert.True(state.Players[0].Points >= before + RulesV2.AmbitionPoints);
+        Assert.True(state.Players[0].Points >= before + RulesV2.Ambition("exportmeister")!.Points);
         Assert.Contains("exportmeister", state.Players[0].AmbitionsDone);
         var entry = Assert.Single(state.Log, e => e.Text.Contains("Ambition erfüllt"));
         Assert.Equal(state.Players[0].Id, entry.PlayerId);

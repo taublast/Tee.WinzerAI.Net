@@ -302,7 +302,7 @@ internal static class MenuNewGame
             {
                 card.With(Kit.Box(removeX, y + 4, 44, 44, Theme.PaperLine, 11)
                     .With(Kit.Text("✕", 0, 9, 44, 28, 19, Theme.Ink, bold: true, align: Align.Center))
-                    .Tap(() => Change(() => setup.Seats.RemoveAt(index))));
+                    .Tap(() => Change(() => setup.Seats.RemoveAt(index))).Tip("Mitspieler entfernen"));
             }
             var note = seat.Ai is { } described ? Ai.AiProfiles[described].Description
                 : setup.Seats.Count(s => s.Ai is null) > 1 ? "Spielt im Wechsel mit den anderen Menschen am selben Gerät (Hot-Seat)." : "Das bist du.";

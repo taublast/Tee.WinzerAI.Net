@@ -199,10 +199,10 @@ public static class AuctionOverlay
         void Set(double value) => session.Nav.Select(AmountKey,
             $"{lot.Id}|{lot.Bids.Count}|{Math.Max(minimum, Math.Floor(value)).ToString(System.Globalization.CultureInfo.InvariantCulture)}");
         card.With(Kit.Text("Eigenes Gebot", 30, 410, 300, 28, 19, Theme.InkSoft, bold: true));
-        card.With(Kit.IconButton("−", 30, 440, 56, () => Set(amount - lot.Increment), dark: false, enabled: amount > minimum));
+        card.With(Kit.IconButton("−", 30, 440, 56, () => Set(amount - lot.Increment), dark: false, enabled: amount > minimum, tip: "Gebot um einen Schritt senken"));
         card.With(Kit.Box(96, 440, 328, 56, Theme.Paper, 14, Theme.PaperLine, 2)
             .With(Kit.Text(Util.FormatEuro(amount), 0, 8, 328, 40, 28, amount > affordable ? Theme.Alert : Theme.Ink, bold: true, serif: true, align: Align.Center)));
-        card.With(Kit.IconButton("+", 434, 440, 56, () => Set(amount + lot.Increment), dark: false));
+        card.With(Kit.IconButton("+", 434, 440, 56, () => Set(amount + lot.Increment), dark: false, tip: "Gebot um einen Schritt erhöhen"));
         (string Label, double Value, bool Enabled)[] quick =
         [
             ("+10 Schritte", amount + 10 * lot.Increment, true),

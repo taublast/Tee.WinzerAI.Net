@@ -11,7 +11,7 @@ public static class Overlays
     public static SkiaLayout Backdrop(bool opaque = false, Action? onTap = null)
     {
         var back = Kit.Box(0, 0, Kit.DesignWidth, Kit.DesignHeight, Theme.C(opaque ? "#f5140a0e" : "#b3140a0e"));
-        back.Tap(onTap ?? (() => { }));
+        back.Block(onTap);
         return back;
     }
 
@@ -33,7 +33,7 @@ public static class Overlays
         var height = 330 + count * 104;
         var top = (Kit.DesignHeight - height) / 2;
         var card = Kit.Card(460, top, 1000, height, 24);
-        card.Tap(() => { });
+        card.Block();
         card.With(Kit.Box(0, 0, 1000, 12, Theme.Wine, 6));
         card.With(Kit.Text(decision.Title, 48, 44, 904, 52, 38, Theme.Ink, bold: true, serif: true));
         card.With(Kit.Text(decision.Text, 48, 108, 904, 130, 22, Theme.Ink, maxLines: 4));
@@ -58,7 +58,7 @@ public static class Overlays
         var state = session.State;
         var back = Backdrop(summary.Changed);
         var card = Kit.Card(360, 90, 1200, 900, 24);
-        card.Tap(() => { });
+        card.Block();
         var y = 40.0;
         if (summary.Changed)
         {
@@ -125,7 +125,7 @@ public static class Overlays
     {
         var back = Backdrop(onTap: () => session.Nav.Show(Overlay.None));
         var card = Kit.Card(660, 300, 600, 480, 24);
-        card.Tap(() => { });
+        card.Block();
         card.With(Kit.Text("Menü", 48, 40, 504, 50, 36, Theme.Ink, bold: true, serif: true));
         card.With(Kit.Text("Der Spielstand wird nach jedem Zug gesichert.", 48, 96, 504, 30, 18, Theme.InkSoft));
         card.With(Kit.Button("Weiterspielen", 48, 150, 504, 72, () => session.Nav.Show(Overlay.None), ButtonKind.Primary, fontSize: 24));

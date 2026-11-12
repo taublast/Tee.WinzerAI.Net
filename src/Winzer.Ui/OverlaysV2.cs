@@ -17,10 +17,10 @@ public static class OverlaysV2
         var closeAction = () => session.Nav.Show(Overlay.None);
         close = closeAction;
         var card = Kit.Box(210, 96, 1500, 888, Panel, 26, Theme.GlassLine, 2, shadow: true);
-        card.Tap(() => { });
+        card.Block();
         card.With(Kit.Text(title, 48, 30, 1000, 54, 40, Theme.Gold, bold: true, serif: true));
         card.With(Kit.Text(subtitle, 48, 86, 1300, 30, 20, Theme.CreamSoft));
-        card.With(Kit.IconButton("✕", 1424, 28, 48, closeAction));
+        card.With(Kit.IconButton("✕", 1424, 28, 48, closeAction, tip: "Schließen"));
         return card;
     }
 
@@ -102,8 +102,8 @@ public static class OverlaysV2
         var choosing = player.Ambitions.Count < RulesV2.AmbitionCount;
         layer.With(Kit.Text("Ambitionen", 620, 0, 500, 36, 26, Theme.Cream, bold: true, serif: true));
         layer.With(Kit.Text(choosing
-            ? $"Wähle {RulesV2.AmbitionCount} geheime Fernziele ({player.Ambitions.Count} gewählt). Jedes bringt einmalig {Util.JsNumber(RulesV2.AmbitionPoints)} Punkte."
-            : $"Deine geheimen Fernziele – die Mitspieler kennen sie nicht. Je {Util.JsNumber(RulesV2.AmbitionPoints)} Punkte.",
+            ? $"Wähle {RulesV2.AmbitionCount} geheime Fernziele ({player.Ambitions.Count} gewählt). Je schwerer, desto mehr Punkte – einmalig beim Erreichen."
+            : $"Deine geheimen Fernziele – die Mitspieler kennen sie nicht. Die Punkte gibt es einmalig beim Erreichen.",
             620, 38, 784, 28, 17, Theme.CreamSoft));
         var shown = choosing ? RulesV2.Ambitions.ToList() : RulesV2.Ambitions.Where(a => player.Ambitions.Contains(a.Id)).ToList();
         for (var i = 0; i < shown.Count; i++)
@@ -117,15 +117,18 @@ public static class OverlaysV2
             var tile = Kit.Box(x, y, 384, height, chosen ? Theme.C("#33f6d477") : Tile, 16, chosen ? Theme.Gold : null, 2);
             tile.With(Kit.Text(ambition.Icon, 20, 16, 50, 44, 32, Theme.Cream));
             tile.With(Kit.Text(ambition.Name, 76, 20, 290, 32, 22, Theme.Gold, bold: true));
+            var worth = $"{Util.JsNumber(ambition.Points)} Punkte · {ambition.Difficulty}";
             tile.With(Kit.Text(ambition.Text, 20, 66, 344, 50, 16, Theme.Cream, maxLines: 2));
             if (choosing)
             {
-                if (chosen) tile.With(Kit.Text("gewählt", 20, 128, 344, 26, 17, Theme.Gold, bold: true));
+                tile.With(Kit.Text(worth, 196, 130, 170, 26, 17, Theme.Cream, bold: true, align: Align.End));
+                if (chosen) tile.With(Kit.Text("gewählt", 20, 130, 170, 26, 17, Theme.Gold, bold: true));
                 else tile.With(Kit.Button("Wählen", 20, 122, 160, 40, () => session.Run(new GameAction.ChooseAmbition(ambition.Id)), ButtonKind.Gold, fontSize: 17, align: Align.Center));
             }
             else
             {
                 var (value, target) = ambition.Progress(session.State, player);
+                tile.With(Kit.Text(worth, 20, 112, 344, 24, 16, Theme.CreamSoft));
                 tile.With(Progress(20, 138, 344, done ? target : value, target, done ? Theme.GoodLight : Theme.Gold));
                 tile.With(Kit.Text(done ? "Erfüllt!" : player.Tainted && ambition.Id == "saubermann" ? "Verspielt." : $"Stand: {Number(value)} von {Number(target)}",
                     20, 162, 344, 28, 17, done ? Theme.GoodLight : Theme.CreamSoft, bold: done));
@@ -246,7 +249,7 @@ public static class OverlaysV2
         var review = session.Player.Review!;
         var back = Overlays.Backdrop(onTap: () => session.Nav.Show(Overlay.None));
         var card = Kit.Card(460, 130, 1000, 820, 26);
-        card.Tap(() => { });
+        card.Block();
         card.With(Kit.Box(0, 0, 1000, 14, Theme.Wine, 7));
         card.With(Kit.Text($"Rückblick auf Jahr {review.Year}", 56, 48, 888, 60, 44, Theme.Ink, bold: true, serif: true));
         card.With(Kit.Text(session.Player.Name, 56, 110, 888, 30, 21, Theme.InkSoft));

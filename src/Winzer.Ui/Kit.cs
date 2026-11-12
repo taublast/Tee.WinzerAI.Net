@@ -117,6 +117,70 @@ public static class Kit
     }
 
     /// <summary>
+    /// Fängt Eingaben ab, ohne wie eine Schaltfläche auszusehen: für Dialogflächen und den abgedunkelten Hintergrund.
+    /// Kein Aufhellen unter dem Mauszeiger – sonst leuchtete der ganze Dialog.
+    /// </summary>
+    public static T Block<T>(this T control, Action? action = null) where T : SkiaControl
+    {
+        control.OnTapped(_ => action?.Invoke());
+        return control;
+    }
+
+    // ---- Kurzhinweis (Tooltip) ----
+
+    static SkiaShape? tipBox;
+    static SkiaLabel? tipLabel;
+    static SkiaControl? tipOwner;
+    static double tipHostWidth, tipHostHeight;
+
+    /// <summary>Legt den Kurzhinweis für diesen Aufbau an; <paramref name="width"/> und <paramref name="height"/> sind die Fenstergröße in Punkten.</summary>
+    public static SkiaControl TipLayer(double width, double height)
+    {
+        (tipHostWidth, tipHostHeight, tipOwner) = (width / S, height / S, null);
+        tipLabel = Text("", 14, 7, 300, 26, 17, Theme.Cream, align: Align.Center);
+        tipBox = Box(0, 0, 328, 40, Theme.C("#f51c1418"), 12, Theme.Gold, 1.5, shadow: true);
+        tipBox.With(tipLabel);
+        tipBox.IsVisible = false;
+        tipBox.InputTransparent = true;
+        tipBox.ZIndex = 6000;
+        return tipBox;
+    }
+
+    /// <summary>
+    /// Kurzhinweis unter dem Mauszeiger – für Schaltflächen, die nur ein Zeichen oder Bild tragen und deren Zweck
+    /// sonst nirgends steht.
+    /// </summary>
+    public static T Tip<T>(this T control, string text) where T : SkiaControl
+    {
+        control.ReceivesHover = true;
+        control.OnHovered((c, on) =>
+        {
+            if (tipBox is null || tipLabel is null) return;
+            if (!on)
+            {
+                if (ReferenceEquals(tipOwner, c)) tipBox.IsVisible = false;
+                return;
+            }
+            var rect = c.DrawingRect;
+            var scale = c.RenderingScale;
+            if (scale <= 0 || rect.Width <= 0) return;
+            // Bildpunkte der Fläche → Entwurfseinheiten
+            double Unit(float pixels) => pixels / scale / S;
+            var width = Math.Min(420, text.Length * 9.4 + 34);
+            const double height = 40;
+            var x = Math.Clamp(Unit(rect.MidX) - width / 2, 6, Math.Max(6, tipHostWidth - width - 6));
+            var below = Unit(rect.Bottom) + 8;
+            var y = below + height > tipHostHeight - 4 ? Unit(rect.Top) - 8 - height : below;
+            tipLabel.Text = text;
+            tipLabel.WidthRequest = (width - 28) * S;
+            tipBox.At(x, y, width, height);
+            tipBox.IsVisible = true;
+            tipOwner = c;
+        });
+        return control;
+    }
+
+    /// <summary>
     /// Macht ein Element antippbar. Unter dem Mauszeiger hellt es sich mit einem durchscheinenden Schleier und
     /// goldenem Rand auf, damit erkennbar ist, was sich anklicken lässt.
     /// </summary>
@@ -294,12 +358,13 @@ public static class Kit
     }
 
     /// <summary>Kleine runde Schaltfläche mit einem Zeichen, z. B. zum Blättern</summary>
-    public static SkiaShape IconButton(string glyph, double x, double y, double size, Action onTap, bool dark = true, bool enabled = true)
+    public static SkiaShape IconButton(string glyph, double x, double y, double size, Action onTap, bool dark = true, bool enabled = true, string? tip = null)
     {
         var box = Box(x, y, size, size, dark ? Theme.GlassLight : Theme.PaperLine, size / 4);
         box.With(Text(glyph, 0, size * 0.14, size, size * 0.7, size * 0.48, dark ? Theme.Cream : Theme.Ink, bold: true, align: Align.Center));
         if (enabled) box.Tap(onTap);
         else box.Opacity = 0.35;
+        if (tip is not null && enabled) box.Tip(tip);
         return box;
     }
 
@@ -314,8 +379,8 @@ public static class Kit
         var layer = Layer(x, y, w, 36);
         var color = dark ? Theme.CreamSoft : Theme.InkSoft;
         layer.With(Text($"{noun} {page + 1} von {Math.Max(1, pageCount)}", 0, 7, w - 90, 24, 16, color));
-        layer.With(IconButton("‹", w - 80, 0, 36, () => setPage(page - 1), dark, page > 0));
-        layer.With(IconButton("›", w - 38, 0, 36, () => setPage(page + 1), dark, page < pageCount - 1));
+        layer.With(IconButton("‹", w - 80, 0, 36, () => setPage(page - 1), dark, page > 0, "Zurückblättern"));
+        layer.With(IconButton("›", w - 38, 0, 36, () => setPage(page + 1), dark, page < pageCount - 1, "Weiterblättern"));
         return layer;
     }
 

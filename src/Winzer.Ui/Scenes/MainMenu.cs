@@ -313,9 +313,9 @@ internal static class MenuUi
     public static SkiaControl Cycler(double x, double y, double w, string text, Action previous, Action next, bool bold = false)
     {
         var box = Kit.Box(x, y, w, 52, Theme.C("#80ffffff"), 12, Theme.PaperLine, 2);
-        box.With(Kit.IconButton("‹", 5, 5, 42, previous, dark: false));
+        box.With(Kit.IconButton("‹", 5, 5, 42, previous, dark: false, tip: "Vorherige Auswahl"));
         box.With(Kit.Text(text, 50, 13, w - 100, 28, 18, Theme.Ink, bold: bold, align: Align.Center));
-        box.With(Kit.IconButton("›", w - 47, 5, 42, next, dark: false));
+        box.With(Kit.IconButton("›", w - 47, 5, 42, next, dark: false, tip: "Nächste Auswahl"));
         return box;
     }
 

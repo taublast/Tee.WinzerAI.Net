@@ -99,7 +99,7 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
         var frame = Kit.Layer(offsetX, offsetY, Kit.DesignWidth, Kit.DesignHeight);
         frame.IsClippedToBounds = true;
         frame.With(Session is { } session ? Shell.Build(session, this) : MainMenu.Build(this));
-        root.With(frame);
+        root.With(frame, Kit.TipLayer(width, height));
         if (leaving is not null)
         {
             // Die alte Szene liegt über der neuen und wird durchsichtig. Die neue ist darunter schon bedienbar.

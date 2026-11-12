@@ -103,7 +103,7 @@ public static class Shell
             Draw.Path(c, "M21 9.5 a7 7 0 1 0 0 11 M8 13 h9 M8 17 h9", ink);
         }, Util.FormatEuro(player.Money), null, player.Money < 0 ? Theme.C("#ff9b8a") : Theme.Cream,
             label => Count(label, $"{player.Id}:konto", player.Money, Util.FormatEuro))
-            .Tap(() => session.Nav.Go(Scene.Kontor)));
+            .Tap(() => session.Nav.Go(Scene.Kontor)).Tip("Kontostand – zum Kontor"));
 
         var hasTarget = Rules.HasPointTarget(state);
         var goal = hasTarget ? $" / {Util.FormatNumber(state.TargetPoints)}" : "";
@@ -112,7 +112,7 @@ public static class Shell
         {
             using var gold = Draw.VerticalGradient(0, h, (0, "#f6d477"), (1, "#c8962e"));
             Draw.Path(c, "M5 4 h20 v8 a10 10 0 0 1 -20 0 Z M12 22 h6 v5 h-6 Z M8 27 h14 v3 h-14 Z", gold);
-        }, points, null, Theme.Cream, label => Count(label, $"{player.Id}:punkte", player.Points, v => Util.FormatNumber(v) + goal)).Tap(() => session.Nav.Go(Scene.Dorf));
+        }, points, null, Theme.Cream, label => Count(label, $"{player.Id}:punkte", player.Points, v => Util.FormatNumber(v) + goal)).Tap(() => session.Nav.Go(Scene.Dorf)).Tip("Punkte – zur Rangliste im Dorf");
         if (hasTarget)
         {
             pointsPill.With(Kit.Box(56, 42, 150, 4, Theme.GlassLine, 2));
@@ -158,15 +158,15 @@ public static class Shell
                     c.DrawCircle(16, 16, 5, p);
                     c.DrawLine(16, 0, 16, 6, p);
                 }))
-                .Tap(() => session.Nav.Show(Overlay.Plan)));
+                .Tap(() => session.Nav.Show(Overlay.Plan)).Tip("Gutsplanung: Ziele, Ausbau, Preise"));
         }
-        bar.With(Kit.IconButton("?", RulesV2.On(state) ? 1672 : 1730, 22, 48, () => session.Nav.Show(Overlay.Lexicon)));
-        bar.With(Kit.IconButton("≡", 1788, 22, 48, () => session.Nav.Show(Overlay.Menu)));
+        bar.With(Kit.IconButton("?", RulesV2.On(state) ? 1672 : 1730, 22, 48, () => session.Nav.Show(Overlay.Lexicon), tip: "Lexikon und Hilfe"));
+        bar.With(Kit.IconButton("≡", 1788, 22, 48, () => session.Nav.Show(Overlay.Menu), tip: "Menü"));
         if (player.Decision is not null && !session.Over)
         {
             bar.With(Kit.Box(1846, 22, 56, 48, radius: 12, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
                 .With(Kit.Text("!", 0, 6, 56, 36, 26, Theme.Ink, bold: true, align: Align.Center))
-                .Tap(() => session.Nav.Show(Overlay.Decision)));
+                .Tap(() => session.Nav.Show(Overlay.Decision)).Tip("Offene Entscheidung"));
         }
         return bar;
     }
@@ -273,7 +273,7 @@ public static class Shell
                     using var p = Draw.Fill(Theme.SkCream);
                     Draw.Path(c, "M2 4 l14 12 -14 12 Z M18 4 l14 12 -14 12 Z", p);
                 }))
-                .Tap(() => session.Run(new GameAction.AutoSkipTurn())));
+                .Tap(() => session.Run(new GameAction.AutoSkipTurn())).Tip("Vorspulen"));
             rail.With(Kit.Box(16, 894, 80, 80, radius: 18, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark), stroke: Theme.Gold, strokeWidth: 2.5)
                 .With(Kit.Paint(24, 14, 32, 32, (c, w, h) =>
                 {

@@ -40,7 +40,7 @@ public static class LexiconOverlay
 
         var book = Kit.Layer((Kit.DesignWidth - BookWidth) / 2, (Kit.DesignHeight - BookHeight) / 2, BookWidth, BookHeight);
         book.With(Kit.Paint(0, 0, BookWidth, BookHeight, PaintBook));
-        book.Tap(() => { });
+        book.Block();
 
         // Linke Seite: Register und Begriffsliste
         book.With(Kit.Text("Lexikon", 70, 46, 500, 60, 46, Theme.Ink, bold: true, serif: true));
@@ -87,7 +87,7 @@ public static class LexiconOverlay
         }
         book.With(Kit.Box(1430, 42, 48, 48, Theme.PaperLine, 12)
             .With(Kit.Text("✕", 0, 10, 48, 30, 21, Theme.Ink, bold: true, align: Align.Center))
-            .Tap(Close));
+            .Tap(Close).Tip("Schließen"));
 
         return Overlays.Backdrop(onTap: Close).With(book);
     }
