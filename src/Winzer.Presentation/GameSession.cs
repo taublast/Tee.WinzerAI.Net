@@ -63,6 +63,13 @@ public sealed class GameSession
     public Summary? Summary { get; private set; }
     public string ChallengeMessage { get; private set; } = "";
     public bool SaveFailed { get; private set; }
+
+    /// <summary>Sichert den Stand sofort – etwa vor dem Beenden. Liefert, ob es geklappt hat.</summary>
+    public bool Save()
+    {
+        SaveFailed = !store.Write(SaveId, State);
+        return !SaveFailed;
+    }
     public event Action? Changed;
 
     public Player Player => Rules.CurrentPlayer(State);

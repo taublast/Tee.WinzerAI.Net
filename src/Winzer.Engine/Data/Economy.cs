@@ -105,6 +105,8 @@ public static class Economy
     public static readonly (double Min, double Max) AuctionInvestorRange = (0.85, 1.35);
     public const double AuctionInvestorChance = 0.85;
     public const double PlotSaleShare = 0.9;
+    /// <summary>Ausrufpreis einer selbst eingelieferten Parzelle als Anteil am Schätzwert – darunter wird nicht zugeschlagen</summary>
+    public const double PlotOfferStartShare = 0.8;
     public const double ClearingCostPerHa = 2_000;
     public const double SiteQualityBonus = 4;
 

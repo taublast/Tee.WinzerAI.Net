@@ -52,7 +52,7 @@ Es entsteht je Architektur (x64, ARM64) ein ZIP zum Entpacken und Starten; die A
 ## Regelversionen
 
 - **1 – Original:** verhält sich wie das TypeScript-Spiel (bewusste Abweichungen siehe [docs/portierung.md](docs/portierung.md)). Die Vergleichsprotokolle in `tests/Winzer.Engine.Tests/Traces` erzeugt `npm run trace` im alten Repository.
-- **2 – Erweitert:** Ab-Hof-Preise selbst setzen, Jahresziele mit Jahresrückblick, Ambitionen, Gutsausbau und Stiftung, Prämierung mit drei Juroren, Lese in Halbmonaten und ein gemeinsamer Winterzug für Januar und Februar.
+- **2 – Erweitert:** Ab-Hof-Preise selbst setzen, Jahresziele mit Jahresrückblick, Ambitionen, Gutsausbau und Stiftung, Prämierung mit drei Juroren, eigene Parzellen zur Versteigerung geben, Lese in Halbmonaten und ein gemeinsamer Winterzug für Januar und Februar.
 
 ## Pipeline
 

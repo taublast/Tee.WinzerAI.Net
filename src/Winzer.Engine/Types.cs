@@ -210,6 +210,8 @@ public sealed class Plot
     public bool IceWineGamble { get; set; }
     public bool HailNet { get; set; }
     public bool Irrigation { get; set; }
+    /// <summary>Erweiterte Regeln: zur nächsten Versteigerung angemeldet</summary>
+    public bool ForAuction { get; set; }
 
     public Plot Clone() => (Plot)MemberwiseClone();
 }
@@ -397,6 +399,10 @@ public sealed class AuctionLot
     /// <summary>Verdeckte Höchstgebote in Einfügereihenfolge</summary>
     public Dictionary<string, double> Limits { get; set; } = [];
     public List<Bid> Bids { get; set; } = [];
+    /// <summary>Erweiterte Regeln: Weingut, das diese Parzelle eingeliefert hat – es bietet selbst nicht mit und bekommt den Erlös</summary>
+    public string? SellerId { get; set; }
+    /// <summary>Die eingelieferte Parzelle beim Verkäufer</summary>
+    public string? PlotId { get; set; }
 
     public AuctionLot Clone()
     {

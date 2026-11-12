@@ -198,6 +198,7 @@ public static class Game
             {
                 var plot = player.Plots.Find(p => p.Id == a.PlotId);
                 if (plot is null) return "Unbekannte Parzelle.";
+                if (plot.ForAuction) return RulesV2.OfferedText;
                 if (!Rules.PlantMonths.Contains(state.Month)) return "Gepflanzt wird nur im März und April.";
                 if (plot.Grape is not null) return "Die Parzelle ist bereits bestockt.";
                 var cost = Grapes.All[a.Grape].PlantCostPerHa * plot.Hectares;
@@ -318,13 +319,16 @@ public static class Game
             {
                 var plot = player.Plots.Find(p => p.Id == a.PlotId);
                 if (plot is null) return "Unbekannte Parzelle.";
-                if (player.Plots.Count <= 1) return "Die letzte Parzelle kann nicht verkauft werden.";
+                if (plot.ForAuction) return RulesV2.OfferedText;
+                // Zur Versteigerung angemeldete Parzellen zählen schon als weg
+                if (player.Plots.Count(p => !p.ForAuction) <= 1) return "Die letzte Parzelle kann nicht verkauft werden.";
                 return null;
             }
             case GameAction.ClearPlot a:
             {
                 var plot = player.Plots.Find(p => p.Id == a.PlotId);
                 if (plot is null) return "Unbekannte Parzelle.";
+                if (plot.ForAuction) return RulesV2.OfferedText;
                 if (plot.Grape is null) return "Die Parzelle liegt bereits brach.";
                 var cost = plot.Hectares * Economy.ClearingCostPerHa;
                 if (player.Money < cost) return $"Nicht genug Geld (benötigt {Util.FormatEuro(cost)}).";
@@ -352,7 +356,8 @@ public static class Game
                 return null;
             case GameAction.AutoSkipTurn:
                 return player.Ai is not null ? "Computergegner spulen nicht vor." : null;
-            case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate:
+            case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate
+                or GameAction.OfferPlot or GameAction.WithdrawPlot:
                 return RulesV2.Validate(state, player, action);
             default:
                 // Das Original kennt keinen weiteren Fall (liefert dann undefined)
@@ -581,7 +586,8 @@ public static class Game
                 Rules.ChangeReputation(player, Economy.VinothekReputation);
                 Util.AddLog(next, null, $"{player.Name} eröffnet eine Vinothek mit Probierstube.");
                 break;
-            case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate:
+            case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate
+                or GameAction.OfferPlot or GameAction.WithdrawPlot:
                 RulesV2.Apply(next, player, action);
                 // Eine Spende bringt Punkte und kann das Punkteziel erreichen
                 if (action is GameAction.Donate) CheckWinner(next);

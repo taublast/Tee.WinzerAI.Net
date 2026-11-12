@@ -83,11 +83,57 @@ public static class Auction
             var count = roll < 0.4 ? 1 : roll < 0.8 ? 2 : 3;
             for (var i = 0; i < count; i++) lots.Add(MakeLot(state, regionId, lots));
         }
+        // Erweiterte Regeln: Von den Weingütern eingelieferte Parzellen kommen als eigene Lose dazu
+        foreach (var seller in state.Players.Where(p => !p.Bankrupt).ToList())
+        {
+            foreach (var plot in seller.Plots.Where(p => p.ForAuction)) lots.Add(MakeOfferedLot(state, seller, plot, lots));
+        }
         state.Auction = new AuctionState { Phase = AuctionPhase.Announced, Year = year, Month = month, Lots = lots };
         Util.AddLog(
             state,
             null,
             $"📣 Weinbergversteigerung im {MonthNames[month - 1]}: {lots.Count} Lagen kommen unter den Hammer. Live bieten – wer am meisten zahlt, bekommt den Zuschlag.");
+    }
+
+    /// <summary>Ausrufpreis, wenn man diese Parzelle selbst zur Versteigerung gibt</summary>
+    public static double OfferStartPrice(Player player, Plot plot, int year) =>
+        RoundThousand(RoundThousand(ParcelValue(plot, player.RegionId, year)) * Economy.PlotOfferStartShare);
+
+    /// <summary>Los aus einer eingelieferten Parzelle: Ausruf bei 80 % des Schätzwerts, der Einlieferer bietet nicht mit.</summary>
+    static AuctionLot MakeOfferedLot(GameState state, Player seller, Plot plot, List<AuctionLot> taken)
+    {
+        var rng = state.Rng;
+        var estimate = RoundThousand(ParcelValue(plot, seller.RegionId, state.Year));
+        var name = plot.Name;
+        for (var n = 2; taken.Any(l => l.Name == name); n++) name = $"{plot.Name} {n}";
+        var limits = new Dictionary<string, double>();
+        if (Rng.NextFloat(rng) < Economy.AuctionInvestorChance)
+        {
+            limits[Investor] = RoundThousand(
+                estimate * Rng.NextRange(rng, Economy.AuctionInvestorRange.Min, Economy.AuctionInvestorRange.Max));
+        }
+        return new AuctionLot
+        {
+            Id = Util.NewId(state, "lot"),
+            RegionId = seller.RegionId,
+            Name = name,
+            Hectares = plot.Hectares,
+            Grape = plot.Grape,
+            PlantedYear = plot.PlantedYear,
+            Site = plot.Site,
+            Estimate = estimate,
+            StartPrice = OfferStartPrice(seller, plot, state.Year),
+            Increment = Math.Max(1000, RoundThousand(estimate * Economy.AuctionIncrementShare)),
+            Status = LotStatus.Pending,
+            Price = 0,
+            Leader = null,
+            HumansIn = [],
+            Awaiting = null,
+            Limits = limits,
+            Bids = [],
+            SellerId = seller.Id,
+            PlotId = plot.Id,
+        };
     }
 
     static AuctionLot MakeLot(GameState state, RegionId regionId, List<AuctionLot> taken)
@@ -165,6 +211,7 @@ public static class Auction
         if (lot is null || lot.Status != LotStatus.Pending) return "Dieser Weinberg wird nicht (mehr) versteigert.";
         if (player.Ai is null) return "Menschen bieten live bei der Versteigerung mit.";
         if (lot.RegionId != player.RegionId) return "Der Weinberg liegt nicht in deinem Anbaugebiet.";
+        if (lot.SellerId == player.Id) return "Auf den eigenen Weinberg bietet man nicht.";
         if (!double.IsInteger(amount) || amount < 0) return "Ungültiger Betrag.";
         if (amount == 0) return null;
         if (amount < lot.StartPrice) return $"Der Ausrufpreis liegt bei {Util.FormatEuro(lot.StartPrice)}.";
@@ -255,7 +302,7 @@ public static class Auction
         if (lot is null) return;
         lot.Status = LotStatus.Open;
         lot.HumansIn = withHumans
-            ? state.Players.Where(p => p.Ai is null && !p.Bankrupt && p.RegionId == regionId).Select(p => p.Id).ToList()
+            ? state.Players.Where(p => p.Ai is null && !p.Bankrupt && p.RegionId == regionId && p.Id != lot.SellerId).Select(p => p.Id).ToList()
             : [];
         if (lot.HumansIn.Count > 0)
         {
@@ -337,6 +384,11 @@ public static class Auction
         {
             lot.Status = LotStatus.Unsold;
             Util.AddLog(state, null, $"🔨 {description}: kein Gebot – der Weinberg bleibt unverkauft.");
+            if (SellerPlot(state, lot) is var (owner, kept) && kept is not null)
+            {
+                kept.ForAuction = false;
+                Util.AddLog(state, owner!.Id, $"Für {kept.Name} fand sich kein Bieter – die Parzelle bleibt bei dir.", LogTone.Bad);
+            }
             return;
         }
         lot.Status = LotStatus.Sold;
@@ -345,6 +397,14 @@ public static class Auction
             state,
             null,
             $"🔨 Zuschlag: {description} geht für {Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % des Schätzwerts) an {BidderName(state, lot.Leader, true)}.");
+        // Eingelieferte Parzelle: Sie verlässt das Gut des Einlieferers, der Erlös geht an ihn
+        if (SellerPlot(state, lot) is var (seller, sold) && seller is not null)
+        {
+            if (sold is not null) seller.Plots = seller.Plots.Where(p => p.Id != sold.Id).ToList();
+            seller.Money += lot.Price;
+            Util.AddLog(state, seller.Id,
+                $"{lot.Name} versteigert: +{Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % des Schätzwerts).", ratio >= Economy.PlotSaleShare * 100 ? LogTone.Good : LogTone.Bad);
+        }
         var winner = state.Players.Find(p => p.Id == lot.Leader);
         if (winner is not null) AwardParcel(state, winner, lot);
         // Wer mitgeboten und verloren hat, ist verstimmt
@@ -352,6 +412,14 @@ public static class Auction
         {
             if (winner is not null) Rivals.AdjustRelation(loser, winner.Id, -10);
         }
+    }
+
+    /// <summary>Einlieferer und seine Parzelle zu einem Los – beide <c>null</c> bei Losen aus dem Umland</summary>
+    static (Player? Seller, Plot? Plot) SellerPlot(GameState state, AuctionLot lot)
+    {
+        if (lot.SellerId is null) return (null, null);
+        var seller = state.Players.Find(p => p.Id == lot.SellerId);
+        return (seller, seller?.Plots.Find(p => p.Id == lot.PlotId));
     }
 
     static void AwardParcel(GameState state, Player player, AuctionLot lot)

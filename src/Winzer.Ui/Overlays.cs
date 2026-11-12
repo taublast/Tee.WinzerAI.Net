@@ -124,7 +124,7 @@ public static class Overlays
     public static SkiaControl Menu(GameSession session, AppHost app)
     {
         var back = Backdrop(onTap: () => session.Nav.Show(Overlay.None));
-        var card = Kit.Card(660, 300, 600, 480, 24);
+        var card = Kit.Card(660, 274, 600, 532, 24);
         card.Block();
         card.With(Kit.Text("Menü", 48, 40, 504, 50, 36, Theme.Ink, bold: true, serif: true));
         card.With(Kit.Text("Der Spielstand wird nach jedem Zug gesichert.", 48, 96, 504, 30, 18, Theme.InkSoft));
@@ -136,6 +136,12 @@ public static class Overlays
             session.Nav.Notify();
         }, fontSize: 24));
         card.With(Kit.Button("Zum Hauptmenü", 48, 322, 504, 72, app.ShowMenu, fontSize: 24));
+        card.With(Kit.Button("Speichern und beenden", 48, 408, 504, 72, () =>
+        {
+            // Erst sichern, dann schließen. Scheitert das Sichern, bleibt das Spiel offen und meldet es.
+            if (session.Save()) app.Quit();
+            else session.Nav.Show(Overlay.None);
+        }, fontSize: 24));
         return back.With(card);
     }
 }

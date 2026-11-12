@@ -41,6 +41,21 @@ public class SaveStoreTests : IDisposable
     }
 
     [Fact]
+    public void Speichern_vor_dem_Beenden_sichert_den_Stand_sofort()
+    {
+        var store = new FileSaveStore(root);
+        var session = new GameSession(NewGame(), "partie-1", store, new SilentAudio());
+        new AutoPilot().PlayTurn(session);
+        // Der Stand auf der Platte geht verloren – „Speichern und beenden“ schreibt ihn neu
+        store.Delete("partie-1");
+        Assert.Empty(new FileSaveStore(root).List());
+        Assert.True(session.Save());
+        Assert.False(session.SaveFailed);
+        var slot = Assert.Single(new FileSaveStore(root).List());
+        Assert.Equal(Json.Serialize(session.State), Json.Serialize(slot.State));
+    }
+
+    [Fact]
     public void Geladene_Partie_spielt_genauso_weiter_wie_die_laufende()
     {
         var store = new FileSaveStore(root);

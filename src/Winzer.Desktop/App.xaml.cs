@@ -244,6 +244,7 @@ public partial class App : Application
                 estate.Plots.Add(extra);
             }
             if (shot.Weather is { } kind) session.State.LastWeather = kind;
+            if (shot.Offer && estate.Plots.Count > 1) session.Run(new GameAction.OfferPlot(estate.Plots[1].Id));
             var waiting = session.Nav.Overlay;
             session.Nav.Go(shot.Scene, shot.Tab);
             // --overlay Auto zeigt, was von selbst erschienen wäre (Prämierung, Rückblick, Gutsplanung)
@@ -331,6 +332,8 @@ sealed class ShotOptions
     public WeatherKind? Weather;
     /// <summary>Zeichnet wie das normale Spiel über die Grafikkarte statt im Speicher</summary>
     public bool Accelerated;
+    /// <summary>Meldet fürs Bild die zweite Parzelle zur Versteigerung an</summary>
+    public bool Offer;
     /// <summary>Stelle der Entwurfsfläche, über der der echte Mauszeiger beim Foto steht</summary>
     public (double X, double Y)? Hover;
     public double Width = 1280;
@@ -373,6 +376,7 @@ sealed class ShotOptions
                     options.Hover = (double.Parse(spot[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(spot[1], System.Globalization.CultureInfo.InvariantCulture));
                     break;
                 }
+                case "--offer": options.Offer = true; break;
                 case "--accel": options.Accelerated = true; break;
                 case "--plots": options.Plots = int.Parse(value); break;
                 case "--weather": options.Weather = Json.Enum<WeatherKind>(value); break;

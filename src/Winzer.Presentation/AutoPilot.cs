@@ -371,6 +371,23 @@ public sealed class AutoPilot
             var fallow = session.Player.Plots.FirstOrDefault(p => p.Grape is null);
             if (fallow is not null) Once(session, "verkaufen", new GameAction.SellPlot(fallow.Id));
         }
+        // Erweiterte Regeln: eine Parzelle zur Versteigerung anmelden, einmal zurückziehen, dann wirklich einliefern
+        if (RulesV2.On(state) && state.Year >= 6 && session.Player.Plots.Count >= 3)
+        {
+            var mine = session.Player.Plots;
+            var offered = mine.FirstOrDefault(p => p.ForAuction);
+            if (offered is null && session.State.Auction is null)
+            {
+                var pick = mine.Where(p => p.Grape is null).FirstOrDefault() ?? mine.OrderBy(p => p.Hectares).First();
+                var offer = new GameAction.OfferPlot(pick.Id);
+                if (session.Problem(offer) is null) Once(session, once.Contains("anmelden") ? "einliefern" : "anmelden", offer);
+            }
+            else if (offered is not null && !once.Contains("zurueckziehen"))
+            {
+                var withdraw = new GameAction.WithdrawPlot(offered.Id);
+                if (session.Problem(withdraw) is null) Once(session, "zurueckziehen", withdraw);
+            }
+        }
     }
 
     /// <summary>Spielt, bis die Partie endet oder die Zahl der Züge erreicht ist.</summary>

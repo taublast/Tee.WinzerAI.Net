@@ -355,6 +355,23 @@ public static class RulesV2
                 if (player.Goal is not null) return "Das Jahresziel steht schon fest.";
                 if (!player.GoalOffers.Contains(a.GoalId)) return "Dieses Ziel steht nicht zur Wahl.";
                 return null;
+            case GameAction.OfferPlot a:
+            {
+                var plot = player.Plots.Find(p => p.Id == a.PlotId);
+                if (plot is null) return "Unbekannte Parzelle.";
+                if (plot.ForAuction) return OfferedText;
+                // Mindestens eine Parzelle bleibt beim Gut
+                if (player.Plots.Count(p => !p.ForAuction) <= 1) return "Die letzte Parzelle kann nicht versteigert werden.";
+                return null;
+            }
+            case GameAction.WithdrawPlot a:
+            {
+                var plot = player.Plots.Find(p => p.Id == a.PlotId);
+                if (plot is null) return "Unbekannte Parzelle.";
+                if (!plot.ForAuction) return "Die Parzelle ist nicht zur Versteigerung angemeldet.";
+                if (OfferAnnounced(state, player, plot)) return "Das Los ist schon angekündigt – jetzt entscheidet die Versteigerung.";
+                return null;
+            }
             case GameAction.ChooseAmbition a:
                 if (Ambition(a.AmbitionId) is null) return "Diese Ambition gibt es nicht.";
                 if (player.Ambitions.Contains(a.AmbitionId)) return "Diese Ambition ist schon gewählt.";
@@ -373,10 +390,30 @@ public static class RulesV2
         }
     }
 
+    public const string OfferedText = "Die Parzelle ist zur Versteigerung angemeldet.";
+
+    /// <summary>Ist das Los zu dieser Parzelle schon angekündigt? Dann lässt sich die Anmeldung nicht mehr zurückziehen.</summary>
+    public static bool OfferAnnounced(GameState state, Player player, Plot plot) =>
+        state.Auction?.Lots.Any(l => l.SellerId == player.Id && l.PlotId == plot.Id) == true;
+
     public static void Apply(GameState state, Player player, GameAction action)
     {
         switch (action)
         {
+            case GameAction.OfferPlot a:
+            {
+                var plot = player.Plots.Find(p => p.Id == a.PlotId)!;
+                plot.ForAuction = true;
+                Util.AddLog(state, player.Id, $"{plot.Name} ({Util.JsNumber(plot.Hectares)} ha) ist zur nächsten Versteigerung angemeldet – Ausruf bei {Util.FormatEuro(Auction.OfferStartPrice(player, plot, state.Year))}.");
+                break;
+            }
+            case GameAction.WithdrawPlot a:
+            {
+                var plot = player.Plots.Find(p => p.Id == a.PlotId)!;
+                plot.ForAuction = false;
+                Util.AddLog(state, player.Id, $"{plot.Name} wird doch nicht versteigert.");
+                break;
+            }
             case GameAction.SetPriceLevel a:
                 player.PriceLevel = Math.Clamp(Js.Round(a.Level * 100) / 100, MinPriceLevel, MaxPriceLevel);
                 break;

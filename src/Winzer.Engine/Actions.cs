@@ -23,6 +23,8 @@ namespace Winzer.Engine;
 [JsonDerivedType(typeof(AuctionPass), "auctionPass")]
 [JsonDerivedType(typeof(Decide), "decide")]
 [JsonDerivedType(typeof(SellPlot), "sellPlot")]
+[JsonDerivedType(typeof(OfferPlot), "offerPlot")]
+[JsonDerivedType(typeof(WithdrawPlot), "withdrawPlot")]
 [JsonDerivedType(typeof(ClearPlot), "clearPlot")]
 [JsonDerivedType(typeof(InstallHailNet), "installHailNet")]
 [JsonDerivedType(typeof(InstallIrrigation), "installIrrigation")]
@@ -71,6 +73,10 @@ public abstract record GameAction
     public sealed record AuctionPass(string LotId) : GameAction;
     public sealed record Decide(int Option) : GameAction;
     public sealed record SellPlot(string PlotId) : GameAction;
+    /// <summary>Erweiterte Regeln: Parzelle für die nächste Versteigerung anmelden</summary>
+    public sealed record OfferPlot(string PlotId) : GameAction;
+    /// <summary>Erweiterte Regeln: Anmeldung zurückziehen, solange das Los noch nicht angekündigt ist</summary>
+    public sealed record WithdrawPlot(string PlotId) : GameAction;
     public sealed record ClearPlot(string PlotId) : GameAction;
     public sealed record InstallHailNet(string PlotId) : GameAction;
     public sealed record InstallIrrigation(string PlotId) : GameAction;

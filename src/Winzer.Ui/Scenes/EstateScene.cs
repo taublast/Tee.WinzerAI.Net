@@ -208,6 +208,7 @@ public static class EstateScene
     /// <summary>Kurzfassung für die einzeiligen Schilder bei vielen Parzellen</summary>
     static string PlotShort(GameState state, Plot plot)
     {
+        if (plot.ForAuction) return "Auktion";
         if (plot.Grape is not { } grapeId) return "Brache";
         if (Rules.PlotAgeFactor(plot, state.Year) <= 0) return "Junganlage";
         if (plot.HarvestedThisYear) return "gelesen";
@@ -219,6 +220,7 @@ public static class EstateScene
     static string PlotLine(GameState state, Plot plot)
     {
         var ha = $"{Util.FormatNumber(plot.Hectares, 1)} ha";
+        if (plot.ForAuction) return $"wird versteigert · {ha}";
         if (plot.Grape is not { } grapeId) return $"Brache · {ha}";
         var grape = Grapes.All[grapeId].Name.Replace(" (PIWI)", "");
         var age = Rules.PlotAgeFactor(plot, state.Year);

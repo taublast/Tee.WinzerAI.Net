@@ -145,6 +145,9 @@ public static class VineyardScene
         else if (plot.Grape is null && session.Problem(new GameAction.Plant(plot.Id, GrapeId.Riesling)) is null)
             tile.With(Kit.Box(18, 18, 132, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark)).With(Kit.Text("pflanzbereit", 0, 4, 132, 24, 17, Theme.Ink, bold: true, align: Align.Center)));
 
+        if (plot.ForAuction)
+            tile.With(Kit.Box(w - 18 - 148, 18, 148, 32, radius: 16, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark)).With(Kit.Text("Versteigerung", 0, 4, 148, 24, 17, Theme.Cream, bold: true, align: Align.Center)));
+
         var ty = pictureHeight + 16;
         tile.With(Kit.Text(plot.Name, 16, ty, w - 32 - 96, 30, 21, on ? Theme.Gold : Theme.Cream, bold: true));
         tile.With(Kit.Paint(w - 16 - 92, ty + 5, 92, 20, (c, pw, ph) => VineyardPaint.Stars(c, pw, ph, plot.Site)));
@@ -376,12 +379,37 @@ public static class VineyardScene
         return card;
     }
 
+    /// <summary>
+    /// Trennen von einer Parzelle: sofort zum festen Preis verkaufen oder – mit den erweiterten Regeln – zur nächsten
+    /// Versteigerung geben, wo sie mehr bringen kann, aber auch liegen bleiben.
+    /// </summary>
     static void SellButton(GameSession session, SkiaLayout card, Plot plot, double y, double height)
     {
         var id = plot.Id;
-        var price = Game.PlotSalePrice(session.Player, plot, session.State.Year);
-        card.With(Kit.Button("Verkaufen", 32, y, 460, height, () => session.Nav.Select(ModeKey, $"sell:{id}"), ButtonKind.Secondary,
-            $"bringt {Util.FormatEuro(price)} · 90 % des Schätzwerts", session.Problem(new GameAction.SellPlot(plot.Id)), 20));
+        var state = session.State;
+        var player = session.Player;
+        var price = Game.PlotSalePrice(player, plot, state.Year);
+        if (!RulesV2.On(state))
+        {
+            card.With(Kit.Button("Verkaufen", 32, y, 460, height, () => session.Nav.Select(ModeKey, $"sell:{id}"), ButtonKind.Secondary,
+                $"bringt {Util.FormatEuro(price)} · 90 % des Schätzwerts", session.Problem(new GameAction.SellPlot(plot.Id)), 20));
+            return;
+        }
+        var start = Util.FormatEuro(Auction.OfferStartPrice(player, plot, state.Year));
+        if (plot.ForAuction)
+        {
+            var withdraw = new GameAction.WithdrawPlot(id);
+            card.With(Kit.Button("Versteigerung zurückziehen", 32, y, 460, height, () => session.Run(withdraw), ButtonKind.Secondary,
+                $"angemeldet für die nächste Versteigerung · Ausruf {start}", session.Problem(withdraw), 20));
+            return;
+        }
+        var sell = session.Problem(new GameAction.SellPlot(id));
+        var offer = new GameAction.OfferPlot(id);
+        var blocked = session.Problem(offer);
+        card.With(Kit.Button("Verkaufen", 32, y, 224, height, () => session.Nav.Select(ModeKey, $"sell:{id}"), ButtonKind.Secondary,
+            $"{Util.FormatEuro(price)} sofort", sell, 20, quiet: sell is not null));
+        card.With(Kit.Button("Versteigern", 268, y, 224, height, () => session.Run(offer), ButtonKind.Secondary,
+            $"Ausruf {start}", blocked, 20, quiet: blocked is not null));
     }
 
     static void SellConfirm(GameSession session, SkiaLayout card, Plot plot, double y)
