@@ -304,10 +304,10 @@ public static class Kit
 
     /// <summary>
     /// Schaltfläche mit Titel und optionaler Unterzeile. Ist <paramref name="problem"/> gesetzt, ist sie gesperrt
-    /// und zeigt den Grund statt der Unterzeile.
+    /// und zeigt den Grund statt der Unterzeile – außer mit <paramref name="quiet"/>, dann bleibt es beim Titel.
     /// </summary>
     public static SkiaShape Button(string title, double x, double y, double w, double h, Action onTap,
-        ButtonKind kind = ButtonKind.Secondary, string? sub = null, string? problem = null, double fontSize = 21, Align align = Align.Start)
+        ButtonKind kind = ButtonKind.Secondary, string? sub = null, string? problem = null, double fontSize = 21, Align align = Align.Start, bool quiet = false)
     {
         var disabled = problem is not null;
         SkiaShape box;
@@ -335,7 +335,8 @@ public static class Kit
                 (titleColor, subColor) = (Theme.Ink, Theme.InkSoft);
                 break;
         }
-        var line = sub ?? problem;
+        // quiet: nur der Titel – gesperrt wird die Schaltfläche blass, der Grund steht schon daneben
+        var line = quiet ? null : sub ?? problem;
         var pad = align == Align.Center ? 8 : 22;
         if (line is null)
         {
@@ -407,9 +408,10 @@ public static class Kit
     }
 
     /// <summary>Zeile „Bezeichnung … Wert“ im Inspektor</summary>
-    public static SkiaControl Row(string label, string value, double x, double y, double w, Color? valueColor = null, double size = 20) =>
+    public static SkiaControl Row(string label, string value, double x, double y, double w, Color? valueColor = null, double size = 20, Color? labelColor = null) =>
         Layer(x, y, w, size * 1.6).With(
-            Text(label, 0, 0, w * 0.5, size * 1.5, size, Theme.InkSoft),
+            // Auf dunklem Grund braucht die Beschriftung eine helle Farbe (labelColor)
+            Text(label, 0, 0, w * 0.5, size * 1.5, size, labelColor ?? Theme.InkSoft),
             Text(value, w * 0.35, 0, w * 0.65, size * 1.5, size, valueColor ?? Theme.Ink, bold: true, align: Align.End));
 
     /// <summary>Schieber für einen Anteil 0–1 mit Schnellwahl ¼, ½, alles.</summary>

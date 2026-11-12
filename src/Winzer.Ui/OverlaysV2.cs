@@ -158,7 +158,7 @@ public static class OverlaysV2
             else
             {
                 var action = new GameAction.Construct(building.Id);
-                tile.With(Kit.Button("Bauen", 22, 168, 408, 52, () => session.Run(action), ButtonKind.Gold, problem: session.Problem(action), fontSize: 19));
+                tile.With(Kit.Button("Bauen", 22, 164, 408, 56, () => session.Run(action), ButtonKind.Gold, problem: session.Problem(action), fontSize: 21, align: Align.Center, quiet: true));
             }
             layer.With(tile);
         }
@@ -170,11 +170,11 @@ public static class OverlaysV2
         gift.With(Kit.Text("🏛️", 24, 20, 60, 52, 38, Theme.Cream));
         gift.With(Kit.Text("Stiftung Weinkultur", 90, 26, 330, 36, 24, Theme.Gold, bold: true));
         gift.With(Kit.Text("Wer hat, der gibt: Eine Spende für Lehrpfad, Museum und Nachwuchs bringt Ansehen, das bleibt.", 24, 86, 392, 80, 17, Theme.Cream, maxLines: 3));
-        gift.With(Kit.Row("Nächste Spende", Util.FormatEuro(cost), 24, 190, 392, Theme.Cream));
-        gift.With(Kit.Row("Bringt", $"+{Util.JsNumber(RulesV2.DonationPoints)} Punkte", 24, 228, 392, Theme.Cream));
-        gift.With(Kit.Row("Bisher gespendet", $"{player.Donations} ×", 24, 266, 392, Theme.Cream));
+        gift.With(Kit.Row("Nächste Spende", Util.FormatEuro(cost), 24, 190, 392, Theme.Cream, labelColor: Theme.CreamSoft));
+        gift.With(Kit.Row("Bringt", $"+{Util.JsNumber(RulesV2.DonationPoints)} Punkte", 24, 228, 392, Theme.Cream, labelColor: Theme.CreamSoft));
+        gift.With(Kit.Row("Bisher gespendet", $"{player.Donations} ×", 24, 266, 392, Theme.Cream, labelColor: Theme.CreamSoft));
         gift.With(Kit.Text("Jede weitere Spende kostet ein Viertel mehr.", 24, 312, 392, 28, 16, Theme.CreamSoft));
-        gift.With(Kit.Button("Spenden", 24, 380, 392, 72, () => session.Run(donate), ButtonKind.Gold, $"{Util.FormatEuro(cost)} für {Util.JsNumber(RulesV2.DonationPoints)} Punkte", session.Problem(donate), 22));
+        gift.With(Kit.Button("Spenden", 24, 380, 392, 56, () => session.Run(donate), ButtonKind.Gold, problem: session.Problem(donate), fontSize: 21, align: Align.Center, quiet: true));
         layer.With(gift);
         return layer;
     }
@@ -212,11 +212,11 @@ public static class OverlaysV2
         var stock = player.Bottles.Where(l => l.MonthsUntilReady == 0).Sum(l => l.Bottles);
         var tile = Kit.Box(0, 200, 680, 400, Tile, 16);
         tile.With(Kit.Text("Was das gerade bedeutet", 28, 22, 600, 34, 22, Theme.Gold, bold: true));
-        tile.With(Kit.Row("Kundschaft beim Richtpreis", $"{Util.FormatNumber(baseDemand)} Fl. im Monat", 28, 76, 624, Theme.Cream));
-        tile.With(Kit.Row("Kundschaft bei deinem Preis", $"{Util.FormatNumber(demand)} Fl. im Monat", 28, 118, 624, demand < baseDemand ? Theme.Warn : Theme.GoodLight));
-        tile.With(Kit.Row("Erlös je Flasche", $"{Js.Round(factor * 100)} % des Richtpreises", 28, 160, 624, Theme.Cream));
-        tile.With(Kit.Row("Umsatz gegenüber Richtpreis", $"{Js.Round(demand / Math.Max(1, baseDemand) * factor * 100)} %", 28, 202, 624, Theme.Cream));
-        tile.With(Kit.Row("Verkaufsfertiger Vorrat", $"{Util.FormatNumber(stock)} Fl.", 28, 244, 624, Theme.Cream));
+        tile.With(Kit.Row("Kundschaft beim Richtpreis", $"{Util.FormatNumber(baseDemand)} Fl. im Monat", 28, 76, 624, Theme.Cream, labelColor: Theme.CreamSoft));
+        tile.With(Kit.Row("Kundschaft bei deinem Preis", $"{Util.FormatNumber(demand)} Fl. im Monat", 28, 118, 624, demand < baseDemand ? Theme.Warn : Theme.GoodLight, labelColor: Theme.CreamSoft));
+        tile.With(Kit.Row("Erlös je Flasche", $"{Js.Round(factor * 100)} % des Richtpreises", 28, 160, 624, Theme.Cream, labelColor: Theme.CreamSoft));
+        tile.With(Kit.Row("Umsatz gegenüber Richtpreis", $"{Js.Round(demand / Math.Max(1, baseDemand) * factor * 100)} %", 28, 202, 624, Theme.Cream, labelColor: Theme.CreamSoft));
+        tile.With(Kit.Row("Verkaufsfertiger Vorrat", $"{Util.FormatNumber(stock)} Fl.", 28, 244, 624, Theme.Cream, labelColor: Theme.CreamSoft));
         var months = demand > 0 ? stock / demand : 0;
         tile.With(Kit.Text(stock <= 0 ? "Kein verkaufsfertiger Wein im Lager."
             : months > 8 ? $"Der Vorrat reicht für {Util.FormatNumber(months, 0)} Monate – ein niedrigerer Preis räumt das Lager."
