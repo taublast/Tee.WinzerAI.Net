@@ -34,7 +34,7 @@ public static class Shell
             Scene.Dorf => VillageScene.Build(session),
             _ => EstateScene.Build(session),
         });
-        frame.With(stage, Hud(session), Rail(session));
+        frame.With(stage, Hud(session, app), Rail(session));
 
         // Das Banner zum Spielende liegt nur über der Gutsansicht – in den Szenen verdeckte es die Reiter
         if (session.Over && session.Nav.Scene == Scene.Gut) frame.With(GameOverBanner(session, app));
@@ -73,7 +73,7 @@ public static class Shell
     public static string ReputationWord(double reputation) =>
         reputation >= 60 ? "gefragt" : reputation >= 30 ? "bekannt" : "Geheimtipp";
 
-    static SkiaControl Hud(GameSession session)
+    static SkiaControl Hud(GameSession session, AppHost app)
     {
         var state = session.State;
         var player = session.Player;
@@ -138,19 +138,21 @@ public static class Shell
         foreach (var kind in Weather.WeatherKinds)
         {
             var on = kind == likeliest;
-            var chip = Kit.Box(left, 14, 128, 64, on ? Theme.C("#2ef4ead7") : Theme.C("#14f4ead7"), 12, on ? Theme.Gold : null, 2);
+            var chip = Kit.Box(left, 14, 120, 64, on ? Theme.C("#2ef4ead7") : Theme.C("#14f4ead7"), 12, on ? Theme.Gold : null, 2);
             var k = kind;
-            chip.With(Kit.Paint(8, 14, 36, 36, (c, w, h) => WeatherIcon(c, k, w)));
-            chip.With(Kit.Text($"{Js.Round(state.Forecast[kind] * 100)} %", 48, 8, 78, 26, 19, Theme.Cream, bold: true));
-            chip.With(Kit.Text(Weather.WeatherLabels[kind], 46, 35, 82, 22, 13, Theme.CreamSoft));
+            chip.With(Kit.Paint(6, 14, 36, 36, (c, w, h) => WeatherIcon(c, k, w)));
+            chip.With(Kit.Text($"{Js.Round(state.Forecast[kind] * 100)} %", 44, 8, 74, 26, 19, Theme.Cream, bold: true));
+            chip.With(Kit.Text(Weather.WeatherLabels[kind], 43, 35, 76, 22, 13, Theme.CreamSoft));
             bar.With(chip);
-            left += 134;
+            left += 126;
         }
 
+        // Symbole rechts, immer in dieser Reihenfolge: Gutsplanung, Hilfe, Ton, Menü – ganz außen die offene Entscheidung
+        const double planX = 1646, helpX = 1702, soundX = 1758, menuX = 1814, decisionX = 1870;
         if (RulesV2.On(state))
         {
             // Gutsplanung: Ziele, Ausbau, Preise
-            bar.With(Kit.Box(1730, 22, 48, 48, Theme.GlassLight, 12)
+            bar.With(Kit.Box(planX, 22, 48, 48, Theme.GlassLight, 12)
                 .With(Kit.Paint(8, 8, 32, 32, (c, w, h) =>
                 {
                     using var p = Draw.Stroke(Theme.SkGold, 3);
@@ -160,12 +162,42 @@ public static class Shell
                 }))
                 .Tap(() => session.Nav.Show(Overlay.Plan)).Tip("Gutsplanung: Ziele, Ausbau, Preise"));
         }
-        bar.With(Kit.IconButton("?", RulesV2.On(state) ? 1672 : 1730, 22, 48, () => session.Nav.Show(Overlay.Lexicon), tip: "Lexikon und Hilfe"));
-        bar.With(Kit.IconButton("≡", 1788, 22, 48, () => session.Nav.Show(Overlay.Menu), tip: "Menü"));
+        bar.With(Kit.IconButton("?", helpX, 22, 48, () => session.Nav.Show(Overlay.Lexicon), tip: "Lexikon und Hilfe"));
+        var muted = app.Audio.Muted;
+        bar.With(Kit.Box(soundX, 22, 48, 48, Theme.GlassLight, 12)
+            .With(Kit.Paint(8, 8, 32, 32, (c, w, h) =>
+            {
+                // Lautsprecher; stumm mit Kreuz, sonst mit Schallwellen
+                using var body = Draw.Fill(muted ? Theme.SkCreamSoft : Theme.SkCream);
+                Draw.Path(c, "M3 12 h6 l8 -7 v22 l-8 -7 h-6 Z", body);
+                using var line = Draw.Stroke(muted ? Theme.SkCreamSoft : Theme.SkCream, 2.6f);
+                line.StrokeCap = SKStrokeCap.Round;
+                if (muted)
+                {
+                    c.DrawLine(21, 11, 30, 21, line);
+                    c.DrawLine(30, 11, 21, 21, line);
+                }
+                else
+                {
+                    using var small = new SKPath();
+                    small.AddArc(new SKRect(15, 10, 25, 22), -55, 110);
+                    c.DrawPath(small, line);
+                    using var big = new SKPath();
+                    big.AddArc(new SKRect(14, 5, 31, 27), -55, 110);
+                    c.DrawPath(big, line);
+                }
+            }))
+            .Tap(() =>
+            {
+                app.Audio.Muted = !app.Audio.Muted;
+                app.Store.SetSetting("muted", app.Audio.Muted ? "1" : "0");
+                session.Nav.Notify();
+            }).Tip(muted ? "Ton einschalten" : "Ton ausschalten"));
+        bar.With(Kit.IconButton("≡", menuX, 22, 48, () => session.Nav.Show(Overlay.Menu), tip: "Menü"));
         if (player.Decision is not null && !session.Over)
         {
-            bar.With(Kit.Box(1846, 22, 56, 48, radius: 12, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
-                .With(Kit.Text("!", 0, 6, 56, 36, 26, Theme.Ink, bold: true, align: Align.Center))
+            bar.With(Kit.Box(decisionX, 22, 44, 48, radius: 12, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
+                .With(Kit.Text("!", 0, 6, 44, 36, 26, Theme.Ink, bold: true, align: Align.Center))
                 .Tap(() => session.Nav.Show(Overlay.Decision)).Tip("Offene Entscheidung"));
         }
         return bar;
@@ -245,13 +277,18 @@ public static class Shell
         {
             var on = session.Nav.Scene == info.Scene;
             var scene = info.Scene;
-            var item = Kit.Layer(0, y, RailWidth, 118);
+            // Die Tippfläche umschließt Symbol und Beschriftung mit gleichem Rand ringsum – so sitzt auch der
+            // Hover-Rahmen mittig und stößt weder an den Rand der Leiste noch an den Nachbarn
+            const double pad = 8, inset = 6;
+            var width = RailWidth - 2 * inset;
+            var item = Kit.Layer(inset, y - pad, width, 102 + 2 * pad);
+            var circleX = (width - 72) / 2;
             item.With(on
-                ? Kit.Box(20, 0, 72, 72, radius: 36, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
-                : Kit.Box(20, 0, 72, 72, Theme.GlassLight, 36));
-            item.With(Kit.Paint(20, 0, 72, 72, (c, w, h) => SceneIcon(c, scene, on ? Theme.SkInk : Theme.SkCreamSoft)));
-            item.With(Kit.Text(info.Label, 0, 78, RailWidth, 24, 17, on ? Theme.Gold : Theme.CreamSoft, bold: on, align: Align.Center));
-            if (badges.GetValueOrDefault(scene) is > 0 and var count) item.With(Kit.Badge(count, 84, 8));
+                ? Kit.Box(circleX, pad, 72, 72, radius: 36, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
+                : Kit.Box(circleX, pad, 72, 72, Theme.GlassLight, 36));
+            item.With(Kit.Paint(circleX, pad, 72, 72, (c, w, h) => SceneIcon(c, scene, on ? Theme.SkInk : Theme.SkCreamSoft)));
+            item.With(Kit.Text(info.Label, 0, pad + 78, width, 24, 17, on ? Theme.Gold : Theme.CreamSoft, bold: on, align: Align.Center));
+            if (badges.GetValueOrDefault(scene) is > 0 and var count) item.With(Kit.Badge(count, circleX + 62, pad + 10));
             item.Tap(() => session.Nav.Go(scene));
             rail.With(item);
             y += 128;

@@ -73,6 +73,20 @@ public class OfferPlotTests
     }
 
     [Fact]
+    public void Angemeldete_Brache_loest_keinen_Pflanzhinweis_aus()
+    {
+        var state = NewGame();
+        while (state.Month != 3) state = Step(state);
+        var me = state.Players[0];
+        var fallow = me.Plots.Where(p => p.Grape is null).ToList();
+        Assert.NotEmpty(fallow);
+        Assert.Contains(Advisor.MonthHints(state, me), h => h.Text.StartsWith("Pflanzzeit"));
+        // Alle Brachen angemeldet: Es gibt nichts mehr zu pflanzen, also auch keinen Hinweis
+        foreach (var plot in fallow) state = Game.ApplyAction(state, new GameAction.OfferPlot(plot.Id));
+        Assert.DoesNotContain(Advisor.MonthHints(state, state.Players[0]), h => h.Text.StartsWith("Pflanzzeit"));
+    }
+
+    [Fact]
     public void Eine_Parzelle_bleibt_immer_beim_Gut()
     {
         var state = NewGame();

@@ -94,7 +94,8 @@ public static class Advisor
         {
             Add(HintArea.Weinberg, $"🛡️ Die Ernte ist für dieses Jahr noch nicht versichert (Prämie {Util.FormatEuro(Defense.InsurancePremium(state, player))}).", false);
         }
-        if (Rules.PlantMonths.Contains(state.Month) && player.Plots.Any(p => p.Grape is null))
+        // Zur Versteigerung angemeldete Brachen lassen sich nicht bepflanzen – kein Hinweis ohne mögliche Aktion
+        if (Rules.PlantMonths.Contains(state.Month) && player.Plots.Any(p => p.Grape is null && !p.ForAuction))
         {
             Add(HintArea.Weinberg, "Pflanzzeit: Brachflächen können bestockt werden.");
         }
