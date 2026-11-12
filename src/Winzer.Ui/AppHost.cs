@@ -32,6 +32,21 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
     /// <summary>Der Kopf soll die Anwendung beenden</summary>
     public event Action? QuitRequested;
 
+    /// <summary>
+    /// Was gerade zu sehen ist: Hauptmenü oder eine Szene der Partie. Wechselt der Wert, blendet <see cref="Build"/>
+    /// vom alten Bild zum neuen über.
+    /// </summary>
+    public string View => Session is { } session ? $"szene:{session.Nav.Scene}" : "menü";
+
+    /// <summary>Dauer des Überblendens beim Szenenwechsel in Sekunden; 0 schneidet hart.</summary>
+    public double FadeSeconds { get; set; } = 0.32;
+
+    // Der zuletzt gebaute Baum – beim Szenenwechsel bleibt sein Inhalt kurz über dem neuen stehen und verblasst
+    SkiaLayout? shownRoot;
+    SkiaControl? shownFrame;
+    string? shownView;
+    double shownScale;
+
     public void Notify() => Changed?.Invoke();
 
     public void Quit() => QuitRequested?.Invoke();
@@ -63,6 +78,14 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
         Kit.S = Math.Max(0.2, Math.Min(width / Kit.DesignWidth, height / Kit.DesignHeight));
         Kit.ResetHover();
         Anim.BeginBuild();
+        // Szenenwechsel: Die alte Szene aus ihrem Baum lösen, bevor der Kopf ihn wegwirft
+        var view = View;
+        SkiaControl? leaving = null;
+        if (FadeSeconds > 0 && Anim.Enabled && shownRoot is not null && shownFrame is not null && view != shownView && shownScale == Kit.S)
+        {
+            shownRoot.Children.Remove(shownFrame);
+            leaving = shownFrame;
+        }
         var root = new SkiaLayout
         {
             Type = LayoutType.Absolute,
@@ -76,7 +99,28 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
         var frame = Kit.Layer(offsetX, offsetY, Kit.DesignWidth, Kit.DesignHeight);
         frame.IsClippedToBounds = true;
         frame.With(Session is { } session ? Shell.Build(session, this) : MainMenu.Build(this));
-        return root.With(frame);
+        root.With(frame);
+        if (leaving is not null)
+        {
+            // Die alte Szene liegt über der neuen und wird durchsichtig. Die neue ist darunter schon bedienbar.
+            leaving.InputTransparent = true;
+            leaving.ZIndex = 5000;
+            root.With(leaving);
+            var start = Anim.Now;
+            Anim.Drive(() =>
+            {
+                var p = (Anim.Now - start) / FadeSeconds;
+                if (p >= 1)
+                {
+                    leaving.IsVisible = false;
+                    return false;
+                }
+                leaving.Opacity = 1 - p * p * (3 - 2 * p);
+                return true;
+            });
+        }
+        (shownRoot, shownFrame, shownView, shownScale) = (root, frame, view, Kit.S);
+        return root;
     }
 
     /// <summary>Tastenkürzel; liefert true, wenn die Taste verarbeitet wurde.</summary>

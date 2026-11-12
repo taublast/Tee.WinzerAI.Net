@@ -95,7 +95,7 @@ public static class EstateScene
     {
         var p = (Anim.Now - seasonStart) / SeasonSeconds;
         if (p >= 1 || seasonFrom == seasonTo) return seasonTo!;
-        Anim.Use();
+        Anim.Busy();
         var k = (float)(p * p * (3 - 2 * p));
         var (a, b) = (seasonFrom!, seasonTo!);
         string Mix(string x, string y)

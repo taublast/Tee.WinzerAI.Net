@@ -21,6 +21,8 @@ public static class Anim
     static readonly Dictionary<string, (double From, double To, double Start, double Seconds)> Tweens = [];
     static readonly Dictionary<string, double> Marks = [];
     static bool wanted;
+    // Ein Übergang läuft (Zählen, Aufdecken, Überblenden): Er muss zu Ende laufen, auch wenn das Fenster nicht vorn liegt
+    static bool busy;
 
     /// <summary>Abgeschaltet steht die Zeit still, Werte springen sofort ans Ziel und nichts fordert neue Bilder an.</summary>
     public static bool Enabled { get; set; } = true;
@@ -56,7 +58,7 @@ public static class Anim
             tween = (Value(tween, now), target, now, seconds);
             Tweens[key] = tween;
         }
-        if (now - tween.Start < tween.Seconds && tween.From != tween.To) wanted = true;
+        if (now - tween.Start < tween.Seconds && tween.From != tween.To) busy = true;
         return Value(tween, now);
     }
 
@@ -82,7 +84,7 @@ public static class Anim
             mark = now;
             Marks[key] = now;
         }
-        if (now - mark < lasting) wanted = true;
+        if (now - mark < lasting) busy = true;
         return now - mark;
     }
 
@@ -94,7 +96,7 @@ public static class Anim
     {
         if (!step() || !Enabled) return;
         Drivers.Add(step);
-        wanted = true;
+        busy = true;
     }
 
     /// <summary>Vor jedem Neuaufbau: Die alten Elemente gibt es nicht mehr.</summary>
@@ -109,8 +111,20 @@ public static class Anim
         Epoch++;
     }
 
-    /// <summary>Führt die laufenden Schritte aus; wahr, wenn das Fenster neu zeichnen soll.</summary>
-    public static bool Step()
+    /// <summary>Beim letzten <see cref="Step"/> lief ein Übergang – das Fenster zeichnet dann in kürzerem Takt.</summary>
+    public static bool InTransition { get; private set; }
+
+    /// <summary>Meldet einen laufenden Übergang, der ein weiteres Bild braucht.</summary>
+    public static void Busy()
+    {
+        if (Enabled) busy = true;
+    }
+
+    /// <summary>
+    /// Führt die laufenden Schritte aus; wahr, wenn das Fenster neu zeichnen soll. Dauerbewegung (Wetter) zählt nur,
+    /// wenn <paramref name="ambient"/> gesetzt ist – ein Fenster im Hintergrund lässt sie ruhen, Übergänge aber laufen aus.
+    /// </summary>
+    public static bool Step(bool ambient = true)
     {
         var running = false;
         for (var i = Drivers.Count - 1; i >= 0; i--)
@@ -118,8 +132,10 @@ public static class Anim
             if (Drivers[i]()) running = true;
             else Drivers.RemoveAt(i);
         }
-        var result = wanted || running;
+        InTransition = busy || running;
+        var result = InTransition || (ambient && wanted);
         wanted = false;
+        busy = false;
         return result;
     }
 }

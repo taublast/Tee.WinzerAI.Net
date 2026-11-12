@@ -16,6 +16,8 @@ public partial class MainWindow : Window
     readonly AppHost app;
     readonly DrawnUiElement surface;
     bool rebuildPending;
+    int trailing;
+
 
     public MainWindow(AppHost app, bool accelerated = true)
     {
@@ -36,17 +38,26 @@ public partial class MainWindow : Window
         var frames = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(50) };
         frames.Tick += (_, _) =>
         {
-            if (!Anim.Step() || !IsVisible || WindowState == WindowState.Minimized) return;
-            // Im Hintergrund ruht das Bild; der nächste Neuaufbau oder Mauszeiger bringt es wieder in Gang
-            if (!IsActive && !Topmost) return;
-            surface.Canvas?.Update();
-            surface.InvalidateVisual();
+            // Im Hintergrund ruht die Dauerbewegung (Wetter); angefangene Übergänge laufen trotzdem zu Ende
+            var front = IsVisible && WindowState != WindowState.Minimized && (IsActive || Topmost);
+            var draw = Anim.Step(ambient: front);
+            // Übergänge (Überblenden, Zählen) laufen flüssig, das Wetter gemächlich
+            frames.Interval = TimeSpan.FromMilliseconds(Anim.InTransition ? 16 : 50);
+            // Nach der letzten Änderung noch einige Bilder nachschieben: Im beschleunigten Modus kann die Anzeige dem
+            // Zeichnen ein Bild hinterherhinken, und ohne Nachlauf bliebe dann das vorletzte stehen.
+            if (!draw)
+            {
+                if (trailing <= 0) return;
+                trailing--;
+                Show();
+                return;
+            }
+            Present();
         };
         frames.Start();
         Activated += (_, _) =>
         {
-            surface.Canvas?.Update();
-            surface.InvalidateVisual();
+            Present();
         };
         Closed += (_, _) => frames.Stop();
     }
@@ -98,8 +109,34 @@ public partial class MainWindow : Window
         previous?.Dispose();
         // Die Fläche zeichnet nur auf Anforderung. Ohne diese Anforderung bliebe nach einem Neuaufbau das alte Bild stehen,
         // bis zufällig die Maus über das Fenster fährt – etwa nach einem Zug per Tastatur.
+        Present();
+    }
+
+    /// <summary>
+    /// Fordert ein neues Bild an und sorgt dafür, dass es auch auf dem Schirm ankommt. Im beschleunigten Modus zeichnet
+    /// die Fläche in ein inneres Element; ohne dessen Auffrischung bliebe das alte Bild stehen, bis die Maus sich bewegt.
+    /// </summary>
+    void Present()
+    {
+        trailing = 8;
+        Show();
+    }
+
+    void Show()
+    {
         surface.Canvas?.Update();
         surface.InvalidateVisual();
+        InvalidateBelow(surface);
+    }
+
+    static void InvalidateBelow(DependencyObject parent)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            (child as UIElement)?.InvalidateVisual();
+            InvalidateBelow(child);
+        }
     }
 
     void OnKey(object sender, KeyEventArgs e)

@@ -251,7 +251,7 @@ public partial class App : Application
             else if (shot.Overlay != Overlay.None) session.Nav.Show(shot.Overlay);
             session.Nav.SetOverlayTab(shot.OverlayTab);
         }
-        var window = new MainWindow(app, accelerated: false) { SizeToContent = SizeToContent.WidthAndHeight, WindowStartupLocation = WindowStartupLocation.Manual, Left = 0, Top = 0 };
+        var window = new MainWindow(app, accelerated: shot.Accelerated) { SizeToContent = SizeToContent.WidthAndHeight, WindowStartupLocation = WindowStartupLocation.Manual, Left = 0, Top = 0 };
         window.Root.Width = shot.Width;
         window.Root.Height = shot.Height;
         MainWindow = window;
@@ -329,6 +329,8 @@ sealed class ShotOptions
     /// <summary>Füllt das Gut für das Foto auf so viele Parzellen auf</summary>
     public int Plots;
     public WeatherKind? Weather;
+    /// <summary>Zeichnet wie das normale Spiel über die Grafikkarte statt im Speicher</summary>
+    public bool Accelerated;
     /// <summary>Stelle der Entwurfsfläche, über der der echte Mauszeiger beim Foto steht</summary>
     public (double X, double Y)? Hover;
     public double Width = 1280;
@@ -371,6 +373,7 @@ sealed class ShotOptions
                     options.Hover = (double.Parse(spot[0], System.Globalization.CultureInfo.InvariantCulture), double.Parse(spot[1], System.Globalization.CultureInfo.InvariantCulture));
                     break;
                 }
+                case "--accel": options.Accelerated = true; break;
                 case "--plots": options.Plots = int.Parse(value); break;
                 case "--weather": options.Weather = Json.Enum<WeatherKind>(value); break;
                 case "--size":

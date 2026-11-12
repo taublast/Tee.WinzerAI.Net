@@ -45,6 +45,8 @@ Eine Szene liefert einen `Kit.Layer(0, 0, Shell.StageWidth, Shell.StageHeight)` 
 
 Das Spiel startet ohne Titelleiste in der Größe des Arbeitsbereichs (`MainWindow.FillWorkArea`), die Taskleiste bleibt sichtbar. Beendet wird über das Menü oder Alt+F4. Die Prüfläufe (`--shot`, `--selbstspiel`) nutzen ein gewöhnliches Fenster.
 
+Beim Wechsel zwischen Hauptmenü und Szenen (`AppHost.View`) wird übergeblendet: `AppHost.Build` löst die alte Szene aus ihrem Baum, legt sie über die neue und lässt sie in einer Drittelsekunde durchsichtig werden. Die neue Szene ist darunter sofort bedienbar. `FadeSeconds = 0` schneidet hart. (Ein Foto des Fensters taugt dafür nicht: Im beschleunigten Zeichenmodus liefert WPF ein verschobenes Bild – das gilt auch für `--shot … --accel`, dessen Bild nur zur Not taugt; die Textdatei daneben stimmt.)
+
 ## Navigator
 
 - `session.Nav.Go(scene, tab?)`, `SetTab(i)`
