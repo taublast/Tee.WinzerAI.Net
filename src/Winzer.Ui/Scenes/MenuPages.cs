@@ -166,24 +166,31 @@ internal static class MenuPages
         var card = Kit.Card(410, 230, 1100, 640, 24);
         card.With(Kit.Box(0, 0, 1100, 14, Theme.Wine, 7));
         card.With(Kit.Text("📜 Lizenzen", 60, 50, 980, 54, 40, Theme.Ink, bold: true, serif: true));
-        card.With(Kit.Text("WinzerAI nutzt quelloffene Software von Dritten. Alle Namen von Weingütern, Personen, Siegeln und Prämierungen im Spiel sind frei erfunden.",
+        card.With(Kit.Text("WinzerAI steht unter der MIT-Lizenz und nutzt quelloffene Software von Dritten. Alle Namen von Weingütern, Personen, Siegeln und Prämierungen im Spiel sind frei erfunden.",
             60, 122, 980, 76, 24, Theme.Ink, maxLines: 2));
-        (string Name, string Text)[] parts =
-        [
-            (".NET", "Laufzeit und Bibliotheken · MIT-Lizenz"),
-            ("SkiaSharp", "Zeichenbibliothek · MIT-Lizenz"),
-            ("Skia", "Grafikkern · BSD-3-Clause-Lizenz"),
-            ("DrawnUi", "Gezeichnete Steuerelemente · MIT-Lizenz"),
-        ];
-        for (var i = 0; i < parts.Length; i++)
+
+        // Die Übersicht kommt aus THIRD-PARTY-NOTICES.txt, die beim Veröffentlichen entsteht (tools/third-party-notices.ps1)
+        var text = app.Notices.Read();
+        var groups = text is null ? [] : ThirdPartyNotices.ByLicense(ThirdPartyNotices.Parse(text));
+        double y = 226;
+        foreach (var (license, projects) in groups)
         {
-            var row = Kit.Box(60, 226 + i * 84, 980, 72, Theme.C("#40d9c7a3"), 14);
-            row.With(Kit.Text(parts[i].Name, 24, 19, 200, 34, 24, Theme.Wine, bold: true, serif: true));
-            row.With(Kit.Text(parts[i].Text, 230, 22, 730, 30, 20, Theme.Ink));
+            var names = string.Join(" · ", projects);
+            var lines = Math.Clamp((int)Math.Ceiling(Kit.TextWidth(names, 20) / 700), 1, 3);
+            var height = 30 * lines + 34;
+            var row = Kit.Box(60, y, 980, height, Theme.C("#40d9c7a3"), 14);
+            row.With(Kit.Text(license, 24, 17, 200, 34, 24, Theme.Wine, bold: true, serif: true));
+            row.With(Kit.Text(names, 230, 20, 730, 30 * lines, 20, Theme.Ink, maxLines: lines));
             card.With(row);
+            y += height + 12;
         }
-        card.With(Kit.Text("Die vollständigen Lizenztexte stehen bei den jeweiligen Projekten.", 60, 574, 980, 30, 20, Theme.InkSoft));
+        card.With(text is null
+            ? Kit.Text("Die Lizenztexte der Fremdsoftware liegen der ausgelieferten Fassung als THIRD-PARTY-NOTICES.txt bei. Diese Fassung ist ein Entwicklerbau ohne die Datei.",
+                60, 226, 980, 64, 20, Theme.InkSoft, maxLines: 2)
+            : Kit.Text("Alle Lizenztexte, auch die der Bausteine von Skia, HarfBuzz und .NET, stehen in THIRD-PARTY-NOTICES.txt im Programmordner.",
+                60, y + 12, 980, 64, 20, Theme.InkSoft, maxLines: 2));
         layer.With(card);
-        MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home));
+        MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home), "Lizenztexte öffnen", () => app.Notices.Open(),
+            nextProblem: text is null ? "Nur in der ausgelieferten Fassung" : null);
     }
 }

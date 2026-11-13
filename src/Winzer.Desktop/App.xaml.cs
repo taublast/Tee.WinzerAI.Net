@@ -24,7 +24,7 @@ public partial class App : Application
         }
         var store = new FileSaveStore();
         var audio = new SynthAudio { Muted = store.GetSetting("muted") == "1" };
-        var window = new MainWindow(new AppHost(store, audio));
+        var window = new MainWindow(new AppHost(store, audio) { Notices = new FileNotices() });
         window.FillWorkArea();
         MainWindow = window;
         window.Show();
@@ -193,7 +193,7 @@ public partial class App : Application
     /// </summary>
     async void RunShot(ShotOptions shot)
     {
-        var app = new AppHost(new MemorySaveStore(), new SilentAudio());
+        var app = new AppHost(new MemorySaveStore(), new SilentAudio()) { Notices = new FileNotices() };
         if (!shot.Menu)
         {
             var region = Json.Enum<RegionId>(shot.Region);

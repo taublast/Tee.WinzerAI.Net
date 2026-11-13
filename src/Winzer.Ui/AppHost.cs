@@ -25,6 +25,8 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
 
     public ISaveStore Store { get; } = store;
     public IAudio Audio { get; } = audio;
+    /// <summary>Lizenzhinweise der mitgelieferten Fremdsoftware für die Lizenzseite</summary>
+    public INotices Notices { get; init; } = new NoNotices();
     public GameSession? Session { get; private set; }
     /// <summary>Zustand des Hauptmenüs (Schritt, Auswahl), der einen Neuaufbau überdauert</summary>
     public MenuState Menu { get; } = new();

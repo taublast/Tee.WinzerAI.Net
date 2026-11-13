@@ -1,6 +1,7 @@
 <#
 Baut die Auslieferung von WinzerAI:
-  artifacts\publish\win-<arch>\          die App als Ordner (eigenständig, braucht kein installiertes .NET)
+  artifacts\publish\win-<arch>\          die App als Ordner (eigenständig, braucht kein installiertes .NET),
+                                         mit LICENSE.txt und THIRD-PARTY-NOTICES.txt (tools\third-party-notices.ps1)
   artifacts\WinzerAI-<version>-<arch>.zip          zum Entpacken und Starten
   artifacts\WinzerAI-<version>-<arch>-setup.exe    Installer – nur wenn Inno Setup 6 (ISCC.exe) vorhanden ist
 
@@ -29,7 +30,8 @@ if (-not $SkipTests) {
 
 $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
 if (-not $iscc) {
-    $iscc = Get-ChildItem 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe', 'C:\Program Files\Inno Setup 6\ISCC.exe' -ErrorAction SilentlyContinue |
+    $iscc = Get-ChildItem 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe', 'C:\Program Files\Inno Setup 6\ISCC.exe',
+        (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe') -ErrorAction SilentlyContinue |
         Select-Object -First 1 -ExpandProperty FullName
 }
 
@@ -40,6 +42,10 @@ foreach ($a in $Arch) {
     if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
     dotnet publish src/Winzer.Desktop -c Release -r $rid --self-contained -o $publish
     if ($LASTEXITCODE -ne 0) { throw "Veröffentlichen für $rid fehlgeschlagen." }
+
+    # Lizenzen gehören zur Auslieferung: die eigene und die Texte aller mitgelieferten Fremdpakete
+    Copy-Item (Join-Path $root 'LICENSE') (Join-Path $publish 'LICENSE.txt')
+    & (Join-Path $root 'tools\third-party-notices.ps1') -DepsJson (Join-Path $publish 'WinzerAI.deps.json') -Out (Join-Path $publish 'THIRD-PARTY-NOTICES.txt')
 
     $zip = Join-Path $artifacts "WinzerAI-$version-$a.zip"
     if (Test-Path $zip) { Remove-Item $zip }
