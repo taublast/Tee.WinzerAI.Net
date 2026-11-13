@@ -1,6 +1,10 @@
 # WinzerAI (.NET)
 
-Rundenbasierte Weingut-Simulation – Neuauflage von [Tee.Winzer](../Tee.Winzer) auf .NET 11 mit einer gezeichneten Oberfläche (DrawnUi) als Windows-App. Ein Browser-Kopf (Blazor WebAssembly) ist vorbereitet und folgt, sobald DrawnUi und SkiaSharp unter .NET 11 für WebAssembly bauen.
+Rundenbasierte Weingut-Simulation – Neuauflage von [Tee.WinzerAI](https://github.com/teebeast/Tee.WinzerAI) auf .NET 11 mit einer gezeichneten Oberfläche (DrawnUi) als Windows-App. Ein Browser-Kopf (Blazor WebAssembly) ist vorbereitet und folgt, sobald DrawnUi und SkiaSharp unter .NET 11 für WebAssembly bauen.
+
+![Das Gut im Mai des zweiten Jahres](docs/screenshot.png)
+
+> **Das Original:** [Tee.WinzerAI](https://github.com/teebeast/Tee.WinzerAI) ist das ursprüngliche Spiel in TypeScript und Svelte, als Browsergame (PWA) und Windows-App. Seine Spielregeln gelten hier als „Regelversion 1“ und werden Zug für Zug gegen seine Partien geprüft. Spielstände von dort lassen sich hier weiterspielen.
 
 - [docs/konzept.md](docs/konzept.md) – Architektur, Oberfläche, Spielkonzept, Phasen, Risiken und Stand der Umsetzung
 - [docs/portierung.md](docs/portierung.md) – Regeln für die 1:1-Übertragung der TypeScript-Engine
@@ -61,4 +65,7 @@ Es entsteht je Architektur (x64, ARM64) ein ZIP zum Entpacken und Starten; die A
 
 ## Rechtliches
 
-MIT-Lizenz wie das Original. Weingüter, Personen, Bio-Siegel und Prämierungen im Spiel sind frei erfunden.
+- WinzerAI steht wie das Original unter der [MIT-Lizenz](LICENSE).
+- `installer/build.ps1` legt jeder Auslieferung `LICENSE.txt` und `THIRD-PARTY-NOTICES.txt` bei. Die zweite Datei erzeugt `tools/third-party-notices.ps1` aus der Paketliste der veröffentlichten App (`WinzerAI.deps.json`). Sie enthält die Lizenztexte aller mitgelieferten Fremdpakete und die Drittanbieter-Hinweise, die .NET, Skia und HarfBuzz mitbringen. Die Lizenzseite im Hauptmenü zeigt ihre Übersicht und öffnet sie.
+- Pakete ohne eigene Lizenzdatei bekommen ihren Text aus `tools/licenses`, übernommen aus dem jeweiligen Repository am Commit der ausgelieferten Version. Kommt ein solches Paket hinzu, bricht das Skript ab, bis sein Lizenztext dort liegt und eingetragen ist.
+- Weingüter, Personen, Bio-Siegel und Prämierungen im Spiel sind frei erfunden.

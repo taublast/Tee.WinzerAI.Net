@@ -1,6 +1,6 @@
 # Konzept: WinzerAI auf .NET 11 mit DrawnUi
 
-Stand: 11.11.2026 (Konzept und Umsetzungsstand, Abschnitt 10) · Quelle: `C:\Projekte\Github\Tee.Winzer` (Svelte 5, TypeScript, Tauri, Version 0.2.0)
+Stand: 11.11.2026 (Konzept und Umsetzungsstand, Abschnitt 10) · Quelle: [Tee.WinzerAI](https://github.com/teebeast/Tee.WinzerAI) (Svelte 5, TypeScript, Tauri, Version 0.2.0)
 
 Dieses Dokument beschreibt, wie das Spiel nach .NET 11 umzieht, wie die neue Oberfläche ohne Scrollen aussieht und wie das Spielkonzept spannender wird. Es enthält die Ergebnisse einer Machbarkeitsprüfung auf dem Entwicklungsrechner (Windows 11 ARM64, .NET SDK 11.0.100).
 
@@ -364,4 +364,4 @@ Stand 12.11.2026. Maßgeblich ist der Code; diese Liste sagt, was davon geprüft
 - [DrawnUi für WPF](https://github.com/DrawnUi/DrawnUi.Net/blob/main/docs/articles/wpf/index.md)
 - [DrawnUi für Blazor](https://drawnui.net/articles/blazor/index.html) und [WebAssembly](https://drawnui.net/articles/blazor/wasm.html)
 - [Plattformen und Pakete](https://github.com/DrawnUi/DrawnUi.Net/blob/main/docs/articles/platforms.md)
-- Spieldesign des Originals: `C:\Projekte\Github\Tee.Winzer\docs\spieldesign.md`
+- Spieldesign des Originals: [docs/spieldesign.md](https://github.com/teebeast/Tee.WinzerAI/blob/main/docs/spieldesign.md) im Original-Repository

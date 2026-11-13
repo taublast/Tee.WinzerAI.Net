@@ -1,6 +1,6 @@
 # Portierungsregeln: TypeScript-Engine → C#
 
-Quelle: `C:\Projekte\Github\Tee.Winzer\src\engine\`. Ziel: `src/Winzer.Engine/` (Namensraum `Winzer.Engine`, Stammdaten in `Winzer.Engine.Data`).
+Quelle: [`src/engine/`](https://github.com/teebeast/Tee.WinzerAI/tree/main/src/engine) im Original-Repository [Tee.WinzerAI](https://github.com/teebeast/Tee.WinzerAI). Ziel: `src/Winzer.Engine/` (Namensraum `Winzer.Engine`, Stammdaten in `Winzer.Engine.Data`).
 
 Die Portierung ist **1:1**. Reihenfolge der Anweisungen, der Zufallsaufrufe und der Rundungen bleibt exakt wie im Original, damit Partien mit gleichem Seed gleich verlaufen. Nichts „verbessern“, nichts umstrukturieren.
 
