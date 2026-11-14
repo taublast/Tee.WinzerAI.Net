@@ -7,6 +7,7 @@
     <NeutralLanguage>de-DE</NeutralLanguage>
     <!-- Browser-Kopf: leer, bis DrawnUi/SkiaSharp unter .NET 11 für WebAssembly bauen (docs/konzept.md, Abschnitt 3) -->
     <WebTfm></WebTfm>
+    <!-- Nicht auf 1.10.8.26 heben: deren WPF-Bildtakt halbiert auf ARM64 die Bildrate (docs/leistung-drawnui.md) -->
     <DrawnUiVersion>1.10.8.25</DrawnUiVersion>
   </PropertyGroup>
 </Project>

@@ -16,6 +16,12 @@ public partial class App : Application
             RunSelfPlay(e.Args[selfPlay + 1], e.Args);
             return;
         }
+        var measure = Array.IndexOf(e.Args, "--messen");
+        if (measure >= 0 && measure + 1 < e.Args.Length)
+        {
+            RunMeasure(e.Args[measure + 1], e.Args);
+            return;
+        }
         var shot = ShotOptions.Parse(e.Args);
         if (shot is not null)
         {

@@ -9,6 +9,7 @@ Rundenbasierte Weingut-Simulation – Neuauflage von [Tee.WinzerAI](https://gith
 - [docs/konzept.md](docs/konzept.md) – Architektur, Oberfläche, Spielkonzept, Phasen, Risiken und Stand der Umsetzung
 - [docs/portierung.md](docs/portierung.md) – Regeln für die 1:1-Übertragung der TypeScript-Engine
 - [docs/oberflaeche.md](docs/oberflaeche.md) – Bausteine und Regeln der Oberfläche
+- [docs/leistung-drawnui.md](docs/leistung-drawnui.md) – Bildrate mit DrawnUi 1.10.8.25 und 1.10.8.26, warum das Spiel bei 1.10.8.25 bleibt
 - [docs/mockups](docs/mockups) – Entwürfe
 
 ## Entwicklung
@@ -30,6 +31,15 @@ Eine ganze Partie von selbst im echten Fenster spielen lassen (Bericht und Bilde
 
 ```powershell
 src\Winzer.Desktop\bin\Debug\net11.0-windows\WinzerAI.exe --selbstspiel pruefung --rules 2
+```
+
+Bildrate messen. Der Lauf zeichnet jede Ansicht einige Sekunden lang ständig neu und schreibt Bilder/s und Zeichenzeiten
+in den Bericht. Messen nur im Release-Build. Vor jedem DrawnUi-Update gegen die bisherige Version vergleichen, siehe
+[docs/leistung-drawnui.md](docs/leistung-drawnui.md):
+
+```powershell
+dotnet build src\Winzer.Desktop -c Release
+src\Winzer.Desktop\bin\Release\net11.0-windows\WinzerAI.exe --messen bericht.txt
 ```
 
 ## Auslieferung

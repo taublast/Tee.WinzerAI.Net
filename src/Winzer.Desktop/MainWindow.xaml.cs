@@ -15,6 +15,8 @@ public partial class MainWindow : Window
 {
     readonly AppHost app;
     readonly DrawnUiElement surface;
+    /// <summary>Die gezeichnete Fläche – für den Messlauf (<c>--messen</c>)</summary>
+    internal DrawnUiElement Surface => surface;
     bool rebuildPending;
     int trailing;
 
@@ -116,7 +118,7 @@ public partial class MainWindow : Window
     /// Fordert ein neues Bild an und sorgt dafür, dass es auch auf dem Schirm ankommt. Im beschleunigten Modus zeichnet
     /// die Fläche in ein inneres Element; ohne dessen Auffrischung bliebe das alte Bild stehen, bis die Maus sich bewegt.
     /// </summary>
-    void Present()
+    internal void Present()
     {
         trailing = 8;
         Show();
