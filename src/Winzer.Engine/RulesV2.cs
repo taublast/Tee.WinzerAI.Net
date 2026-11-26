@@ -516,7 +516,7 @@ public static class RulesV2
         }
         if (player.Goal is null && player.GoalOffers.Count > 0)
         {
-            yield return new Hint { Area = HintArea.Hof, Important = true, Text = Lang.T("Wähle dein Jahresziel aus drei Angeboten.", "Pick your yearly goal from three offers.") };
+            yield return new Hint { Area = HintArea.Hof, Important = true, Text = Lang.T("Wähle dein Jahresziel aus drei Angeboten.", "Choose your yearly goal from three offers.") };
         }
     }
 
