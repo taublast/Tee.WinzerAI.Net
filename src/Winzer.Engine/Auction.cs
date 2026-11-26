@@ -401,7 +401,7 @@ public static class Auction
         Util.AddLog(
             state,
             null,
-            (Lang.En ? $"🔨 Sold: {description} goes for {Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % of the estimate) to {BidderName(state, lot.Leader, true)}." : $"🔨 Zuschlag: {description} geht für {Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % des Schätzwerts) an {BidderName(state, lot.Leader, true)}."));
+            (Lang.En ? $"🔨 Sold: {description} for {Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % of the estimate) to {BidderName(state, lot.Leader, true)}." : $"🔨 Zuschlag: {description} geht für {Util.FormatEuro(lot.Price)} ({Util.JsNumber(ratio)} % des Schätzwerts) an {BidderName(state, lot.Leader, true)}."));
         // Eingelieferte Parzelle: Sie verlässt das Gut des Einlieferers, der Erlös geht an ihn
         if (SellerPlot(state, lot) is var (seller, sold) && seller is not null)
         {

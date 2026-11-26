@@ -168,7 +168,7 @@ internal static class MenuNewGame
                 on ? Theme.C("#fff6e6") : Theme.Ink, bold: true, serif: true));
             MiniMeter(card, Lang.T("Wärme", "Warmth"), region.Warmth, WarmthColor, 62);
             MiniMeter(card, "Frost", region.FrostRisk, FrostColor, 90);
-            MiniMeter(card, Lang.T("Nässe", "Wetness"), region.Wetness, WetColor, 118);
+            MiniMeter(card, Lang.T("Nässe", "Damp"), region.Wetness, WetColor, 118);
             card.With(Kit.Box(16, 150, cardWidth - 32, 2, Theme.PaperLine));
             card.With(Kit.Text(Grapes.All[region.StartGrape].Name, 16, 160, cardWidth - 32, 28, 19, Theme.Ink, bold: true));
             card.With(Kit.Text(Prestige[(int)region.Character.Prestige + 1], 16, 190, cardWidth - 32, 24, 17,
@@ -184,7 +184,7 @@ internal static class MenuNewGame
         [
             (Lang.T("Wärme", "Warmth"), Lang.T("beschleunigt die Reife", "speeds up ripening"), WarmthColor),
             ("Frost", Lang.T("Spätfrost, aber auch Chance auf Eiswein", "late frost, but a chance for Eiswein"), FrostColor),
-            (Lang.T("Nässe", "Wetness"), Lang.T("Krankheitsdruck durch Nässe", "disease pressure from wetness"), WetColor),
+            (Lang.T("Nässe", "Damp"), Lang.T("Krankheitsdruck durch Nässe", "disease pressure from damp"), WetColor),
         ];
         for (var i = 0; i < entries.Length; i++)
         {
@@ -217,7 +217,7 @@ internal static class MenuNewGame
         [
             (Lang.T("Wärme", "Warmth"), region.Warmth, Lang.T("beschleunigt die Reife", "speeds up ripening"), WarmthColor),
             ("Frost", region.FrostRisk, Lang.T("Spätfrost, aber Chance auf Eiswein", "late frost, but a chance for Eiswein"), FrostColor),
-            (Lang.T("Nässe", "Wetness"), region.Wetness, Lang.T("Krankheitsdruck", "disease pressure"), WetColor),
+            (Lang.T("Nässe", "Damp"), region.Wetness, Lang.T("Krankheitsdruck", "disease pressure"), WetColor),
         ];
         for (var i = 0; i < meters.Length; i++)
         {

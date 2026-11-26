@@ -32,7 +32,7 @@ public static class VineyardScene
             session.Problem(new GameAction.ApplyBioLabel()) is null ? 1 : 0,
             session.Problem(new GameAction.FrostCandles()) is null ? 1 : 0,
         ];
-        scene.With(Kit.Tabs(28, 20, Lang.En ? ["Plots", "Crop protection & organic", "Weather protection"] : ["Parzellen", "Pflanzenschutz & Bio", "Wetterschutz"], tab, session.Nav.SetTab, badges));
+        scene.With(Kit.Tabs(28, 20, Lang.En ? ["Plots", "Crop protection & organic", "Weather"] : ["Parzellen", "Pflanzenschutz & Bio", "Wetterschutz"], tab, session.Nav.SetTab, badges));
 
         var season = state.Month switch
         {

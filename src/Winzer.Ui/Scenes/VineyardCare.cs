@@ -122,7 +122,7 @@ internal static class VineyardCare
         var conversion = Step(0, conversionDone, isBio && !conversionDone);
         conversion.With(Kit.Text("🌱", 14, 12, 50, 44, 30, Theme.Cream));
         conversion.With(Kit.Text(Lang.T("Umstellung", "Conversion"), 64, 14, 200, 34, 24, Theme.Cream, bold: true, serif: true));
-        conversion.With(Kit.Text(conversionDone ? Lang.T("abgeschlossen", "complete") : isBio ? Lang.T("läuft", "in progress") : Lang.T("beginnt mit Bio-Pflanzenschutz", "starts with organic crop protection"), 16, 56, 250, 26, 17,
+        conversion.With(Kit.Text(conversionDone ? Lang.T("abgeschlossen", "complete") : isBio ? Lang.T("läuft", "in progress") : Lang.T("beginnt mit Bio-Pflanzenschutz", "starts with organic protection"), 16, 56, 250, 26, 17,
             conversionDone ? Theme.GoodLight : isBio ? Theme.Gold : Theme.CreamSoft, bold: true));
         conversion.With(Kit.Text(Lang.En ? $"{Economy.BioConversionMonths} months following organic rules – no seal yet." : $"{Economy.BioConversionMonths} Monate nach Bio-Vorgaben – noch ohne Siegel.", 16, 90, 246, 72, 16, Theme.Cream, maxLines: 3));
         conversion.With(Kit.Box(16, 176, 246, 12, Theme.GlassLine, 6));
@@ -269,7 +269,7 @@ internal static class VineyardCare
                 Lang.En ? $"−{Percent(Economy.HailLoss)} yield · a net blocks {Percent(Economy.HailNetProtection)}" : $"−{Percent(Economy.HailLoss)} Ertrag · ein Netz hält {Percent(Economy.HailNetProtection)} ab",
                 Lang.En ? $"{nets} of {plots.Count} plots with hail net" : $"{nets} von {plots.Count} Parzellen mit Hagelnetz", Economy.HailMonths.Contains(state.Month)),
             (VineyardIcon.Drought, Lang.T("Dürre", "Drought"), Percent(Defense.DroughtChance(state, player)),
-                Lang.T("bei Sonne im Juli und August", "in sunny weather in July and August"),
+                Lang.T("bei Sonne im Juli und August", "on sunny days in July and August"),
                 Lang.En ? $"−{Percent(Economy.DroughtLoss)} yield without irrigation" : $"−{Percent(Economy.DroughtLoss)} Ertrag ohne Bewässerung",
                 Lang.En ? $"{watered} of {plots.Count} plots irrigated" : $"{watered} von {plots.Count} Parzellen bewässert", Economy.DroughtMonths.Contains(state.Month)),
         ];

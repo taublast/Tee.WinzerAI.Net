@@ -168,7 +168,7 @@ public static partial class MarketScene
         card.With(Kit.Row(Lang.T("Ab Hof", "Cellar door"), $"{Util.FormatNumber(Live.Demand(player))} {Lang.T("Fl./Monat", "btl./month")}", 206, 162, 286, size: 19));
         card.With(Kit.Row(Lang.T("Verfall", "Decay"), Lang.En ? $"−{Util.FormatNumber(reputation * Economy.ReputationDecayRate, 1)} per month" : $"−{Util.FormatNumber(reputation * Economy.ReputationDecayRate, 1)} im Monat", 206, 198, 286, Theme.Alert, 19));
         var saturation = Math.Max(0, 1 - reputation / Economy.ReputationSaturation);
-        card.With(Kit.Row(Lang.T("Werbewirkung", "Advertising effect"), $"{Js.Round(saturation * 100)} %", 206, 234, 286, size: 19));
+        card.With(Kit.Row(Lang.T("Werbewirkung", "Ad effect"), $"{Js.Round(saturation * 100)} %", 206, 234, 286, size: 19));
 
         card.With(Rule(290));
         card.With(Kit.Text(

@@ -203,7 +203,7 @@ internal static class MenuPages
         var card = Kit.Card(410, 230, 1100, 400, 24);
         card.With(Kit.Box(0, 0, 1100, 14, Theme.Wine, 7));
         card.With(Kit.Text(Lang.T("Sprache", "Language"), 60, 50, 980, 54, 40, Theme.Ink, bold: true, serif: true));
-        (bool En, string Name, string Sub)[] languages = [(false, "Deutsch", "German"), (true, "English", "Englisch")];
+        (bool En, string Name, string Sub)[] languages = [(false, "Deutsch", Lang.En ? "German" : ""), (true, "English", Lang.En ? "" : "Englisch")];
         for (var i = 0; i < languages.Length; i++)
         {
             var (en, name, sub) = languages[i];

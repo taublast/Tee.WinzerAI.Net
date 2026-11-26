@@ -25,7 +25,9 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
 
     readonly bool language = UseStoredLanguage(store);
 
-    static bool UseStoredLanguage(ISaveStore store) => Lang.En = store.GetSetting("language") == "en";
+    // Entwicklerhilfe: WINZER_LANG=en gilt, solange keine Sprache gespeichert ist (z. B. für --shot und --selbstspiel)
+    static bool UseStoredLanguage(ISaveStore store) =>
+        Lang.En = (store.GetSetting("language") ?? Environment.GetEnvironmentVariable("WINZER_LANG")) == "en";
 
     /// <summary>Wechselt die Sprache aller Texte und merkt sie sich für den nächsten Start.</summary>
     public void SetLanguage(bool english)

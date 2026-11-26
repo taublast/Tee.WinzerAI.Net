@@ -76,7 +76,7 @@ public static partial class MarketScene
         card.With(Chip(Lang.En ? $"+{Util.FormatNumber(order.Points)} points" : $"+{Util.FormatNumber(order.Points)} Punkte", SlotWidth - 126, 147, 104, Theme.PaperLine, Theme.Ink, 14));
         card.With(Kit.Text(WishText(order), 22, 50, SlotWidth - 44, 70, 17, Theme.Ink, maxLines: 3));
         card.With(Kit.Text(Lang.En ? $"{Price(order.PricePerBottle)}/btl. · total {Util.FormatEuro(Orders.OrderValue(order))}" : $"{Price(order.PricePerBottle)}/Fl. · zusammen {Util.FormatEuro(Orders.OrderValue(order))}", 22, 124, SlotWidth - 44, 26, 17, Theme.Wine, bold: true));
-        card.With(Kit.Text(Lang.En ? $"Deliver by {Orders.DeadlineText(order)}" : $"Liefern bis {Orders.DeadlineText(order)}", 22, 150, SlotWidth - 150, 26, 16, Theme.InkSoft));
+        card.With(Kit.Text(Lang.En ? $"Due {Orders.DeadlineText(order)}" : $"Liefern bis {Orders.DeadlineText(order)}", 22, 150, SlotWidth - 150, 26, 16, Theme.InkSoft));
         card.With(Meter(22, 184, SlotWidth - 44, available / order.Bottles, full ? Theme.Good : Theme.Wine));
         card.With(Kit.Text(Lang.En ? $"Matching in stock: {Util.FormatNumber(available)} / {Util.FormatNumber(order.Bottles)} btl." : $"Passend im Lager: {Util.FormatNumber(available)} / {Util.FormatNumber(order.Bottles)} Fl.", 22, 199, SlotWidth - 44, 24, 16, full ? Theme.Good : Theme.InkSoft, bold: full));
         card.With(accepted

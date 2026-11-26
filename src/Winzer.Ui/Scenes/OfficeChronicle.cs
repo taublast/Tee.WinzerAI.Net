@@ -178,7 +178,7 @@ internal static class OfficeChronicle
         Legend(card, 760, Theme.GoldDark, Lang.T("Sonstige Einträge", "Other entries"), yearEntries.Count(e => e.Tone is null));
 
         card.With(Kit.Button(Lang.T("Zum neuesten Eintrag", "To the latest entry"), 32, 836, 460, 76, () => open(sheets.Count - 1), ButtonKind.Secondary,
-            Lang.En ? $"{Game.MonthNames[sheets[^1].Month - 1]}, year {sheets[^1].Year}" : $"{Game.MonthNames[sheets[^1].Month - 1]}, Jahr {sheets[^1].Year}", index == sheets.Count - 1 ? Lang.T("ist aufgeschlagen", "is open") : null));
+            Lang.En ? $"{Game.MonthNames[sheets[^1].Month - 1]}, year {sheets[^1].Year}" : $"{Game.MonthNames[sheets[^1].Month - 1]}, Jahr {sheets[^1].Year}", index == sheets.Count - 1 ? Lang.T("ist aufgeschlagen", "shown now") : null));
         return card;
     }
 

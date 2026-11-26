@@ -439,7 +439,7 @@ public static class VillageScene
         var player = session.Player;
         var card = Inspector();
         card.With(Kit.Text(rival.Name, 32, 26, 460, 44, 30, Theme.Ink, bold: true, serif: true));
-        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? " (Nachbar)" : "");
+        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? Lang.T(" (Nachbar)", " (neighbour)") : "");
         var y = 72.0;
         if (rival.Ai is { } ai)
         {

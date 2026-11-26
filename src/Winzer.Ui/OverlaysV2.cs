@@ -58,7 +58,7 @@ public static class OverlaysV2
         var layer = Kit.Layer(48, 204, 1404, 660);
 
         // Links: Jahresziel
-        layer.With(Kit.Text(Lang.En ? $"Goal for {state.Year}" : $"Jahresziel {state.Year}", 0, 0, 560, 36, 26, Theme.Cream, bold: true, serif: true));
+        layer.With(Kit.Text(Lang.En ? $"Goal for year {state.Year}" : $"Jahresziel {state.Year}", 0, 0, 560, 36, 26, Theme.Cream, bold: true, serif: true));
         if (player.Goal is null && player.GoalOffers.Count > 0)
         {
             layer.With(Kit.Text(Lang.T(Lang.T("Wähle eines. Erreichst du es bis Dezember, gibt es Punkte und Ansehen.", "Pick one. Reach it by December and you earn points and reputation."), "Pick one. Reach it by December and you earn points and reputation."), 0, 38, 560, 28, 17, Theme.CreamSoft));
@@ -104,7 +104,7 @@ public static class OverlaysV2
         layer.With(Kit.Text(choosing
             ? Lang.En ? $"Choose {RulesV2.AmbitionCount} secret long-term goals ({player.Ambitions.Count} chosen). The harder, the more points – once, when reached."
                 : $"Wähle {RulesV2.AmbitionCount} geheime Fernziele ({player.Ambitions.Count} gewählt). Je schwerer, desto mehr Punkte – einmalig beim Erreichen."
-            : Lang.T("Deine geheimen Fernziele – die Mitspieler kennen sie nicht. Die Punkte gibt es einmalig beim Erreichen.", "Your secret long-term goals – the other players don't know them. Points are awarded once, when reached."),
+            : Lang.T("Deine geheimen Fernziele – die Mitspieler kennen sie nicht. Die Punkte gibt es einmalig beim Erreichen.", "Your secret long-term goals – hidden from the other players. Points come once, when reached."),
             620, 38, 784, 28, 17, Theme.CreamSoft));
         var shown = choosing ? RulesV2.Ambitions.ToList() : RulesV2.Ambitions.Where(a => player.Ambitions.Contains(a.Id)).ToList();
         for (var i = 0; i < shown.Count; i++)

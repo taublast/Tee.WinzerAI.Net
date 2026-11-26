@@ -48,13 +48,14 @@ public static class LexiconOverlay
         book.With(Kit.Text(Lang.T("Kurz erklärt – ersetzt das Handbuch.", "Briefly explained – replaces the manual."), 70, 106, 560, 28, 20, Theme.InkSoft));
         var letters = entries.Select(e => char.ToUpperInvariant(e.Term[0])).Distinct().ToList();
         var current = char.ToUpperInvariant(entry.Term[0]);
+        var step = Math.Min(39, 655.0 / letters.Count); // die englische Liste hat mehr Anfangsbuchstaben
         for (var i = 0; i < letters.Count; i++)
         {
             var letter = letters[i];
             var on = letter == current;
             var first = IndexOfLetter(letter);
-            book.With(Kit.Box(70 + i * 39, 150, 34, 42, on ? Theme.Wine : Theme.C("#59d9c7a3"), 9)
-                .With(Kit.Text(letter.ToString(), 0, 8, 34, 28, 20, on ? Theme.Paper : Theme.Ink, bold: true, serif: true, align: Align.Center))
+            book.With(Kit.Box(70 + i * step, 150, step - 5, 42, on ? Theme.Wine : Theme.C("#59d9c7a3"), 9)
+                .With(Kit.Text(letter.ToString(), 0, 8, step - 5, 28, 20, on ? Theme.Paper : Theme.Ink, bold: true, serif: true, align: Align.Center))
                 .Tap(() => Open(first)));
         }
         for (var i = 0; i < PerPage; i++)

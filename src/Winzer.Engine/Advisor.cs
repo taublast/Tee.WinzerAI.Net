@@ -51,7 +51,7 @@ public static class Advisor
         if (player.OrderOffers.Count > 0)
         {
             var fulfillable = player.OrderOffers.Any(o => Orders.EligibleBottles(player, o) >= o.Bottles);
-            Add(HintArea.Auftraege, Lang.En ? $"📦 {player.OrderOffers.Count} order request(s) pending{(fulfillable ? " – you can deliver one right away" : "")}." : $"📦 {player.OrderOffers.Count} Auftragsanfrage(n) liegen vor{(fulfillable ? " – eine davon kannst du sofort liefern" : "")}.", fulfillable);
+            Add(HintArea.Auftraege, Lang.En ? $"📦 {player.OrderOffers.Count} {(player.OrderOffers.Count == 1 ? "order request is" : "order requests are")} waiting{(fulfillable ? " – you can deliver one right away" : "")}." : $"📦 {player.OrderOffers.Count} Auftragsanfrage(n) liegen vor{(fulfillable ? " – eine davon kannst du sofort liefern" : "")}.", fulfillable);
         }
         if (player.ExportOffer is not null) Add(HintArea.Auftraege, Lang.En ? $"Export request from {Exports.CountryName(player.ExportOffer.Country)} – valid this month only." : $"Exportanfrage aus {player.ExportOffer.Country} – nur diesen Monat gültig.");
         var lots = state.Auction?.Lots.Where(l => l.RegionId == player.RegionId && l.Status != LotStatus.Sold && l.Status != LotStatus.Unsold).ToList() ?? new List<AuctionLot>();

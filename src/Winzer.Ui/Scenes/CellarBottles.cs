@@ -171,7 +171,7 @@ internal static class CellarBottles
 
         const double top = 544;
         var register = new GameAction.Register(lot.Id);
-        card.With(CellarParts.Action(Lang.T("Prüfen lassen", "Have inspected"), CellarParts.Pad, top, CellarParts.Inner, 84, () => session.Run(register), ButtonKind.Primary,
+        card.With(CellarParts.Action(Lang.T("Prüfen lassen", "Get inspected"), CellarParts.Pad, top, CellarParts.Inner, 84, () => session.Run(register), ButtonKind.Primary,
             Lang.En ? $"official inspection · costs {Util.FormatEuro(Economy.RegisterFee)} · +{Util.FormatNumber(Market.RegistrationPoints(lot))} points" : $"amtliche Prüfung · kostet {Util.FormatEuro(Economy.RegisterFee)} · +{Util.FormatNumber(Market.RegistrationPoints(lot))} Punkte", session.Problem(register)));
         card.With(Kit.Button(Lang.T("Großhandel ›", "Wholesale ›"), CellarParts.Pad, top + 96, CellarParts.Inner, 84, () => nav.Go(Scene.Markt, 1), ButtonKind.Secondary,
             lot.Registered
