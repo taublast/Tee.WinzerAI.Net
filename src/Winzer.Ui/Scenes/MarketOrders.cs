@@ -211,7 +211,7 @@ public static partial class MarketScene
         var stock = ExportStock(player, terms);
         var enough = stock >= terms.BottlesPerMonth;
         var contract = player.ExportContract;
-        panel.With(Kit.Text(Lang.En ? (contract is null ? $"Request from {terms.Country} · {terms.Months} months" : $"Contract with {terms.Country}") : (contract is null ? $"Anfrage aus {Dative(terms.Country)} · {terms.Months} Monate" : $"Vertrag mit {Dative(terms.Country)}"), 24, 48, 520, 32, 22, Theme.Cream, bold: true));
+        panel.With(Kit.Text(Lang.En ? (contract is null ? $"Request from {Exports.CountryName(terms.Country)} · {terms.Months} months" : $"Contract with {Exports.CountryName(terms.Country)}") : (contract is null ? $"Anfrage aus {Dative(terms.Country)} · {terms.Months} Monate" : $"Vertrag mit {Dative(terms.Country)}"), 24, 48, 520, 32, 22, Theme.Cream, bold: true));
         panel.With(Kit.Text(Lang.En ? $"{Util.FormatNumber(terms.BottlesPerMonth)} bottles per month at {Price(terms.PricePerBottle)} · at least {Quality.QualityInfo(terms.MinLevel).Name}, quality from {Util.FormatNumber(terms.MinQuality)}" : $"{Util.FormatNumber(terms.BottlesPerMonth)} Flaschen pro Monat zu {Price(terms.PricePerBottle)} · mindestens {Quality.QualityInfo(terms.MinLevel).Name}, Güte ab {Util.FormatNumber(terms.MinQuality)}",
             24, 84, 520, 52, 18, Theme.Cream, maxLines: 2));
         panel.With(Kit.Text(Lang.En ? $"Matching stock: {Util.FormatNumber(stock)} btl. – {(enough ? $"lasts for {Util.FormatNumber(Math.Floor(stock / terms.BottlesPerMonth))} {(Math.Floor(stock / terms.BottlesPerMonth) == 1 ? "month" : "months")}" : "too little for a monthly delivery")}" : $"Passender Vorrat: {Util.FormatNumber(stock)} Fl. – {(enough ? $"reicht für {Util.FormatNumber(Math.Floor(stock / terms.BottlesPerMonth))} {(Math.Floor(stock / terms.BottlesPerMonth) == 1 ? "Monat" : "Monate")}" : "zu wenig für eine Monatslieferung")}",
@@ -273,7 +273,7 @@ public static partial class MarketScene
         var panel = Kit.Glass(834, 716, 396, 244);
         var demand = Live.Demand(player);
         var (ready, sold, net) = FarmGate(state, player);
-        var channels = Lang.T("Hofladen", "Farm shop") + (player.HasOnlineShop ? Lang.T(", Online-Shop", ", online shop") : "") + (player.HasVinothek ? Lang.T(", Vinothek", ", wine boutique") : "");
+        var channels = Lang.T("Hofladen", "Farm shop") + (player.HasOnlineShop ? Lang.T(", Online-Shop", ", online shop") : "") + (player.HasVinothek ? Lang.T(", Vinothek", ", Vinothek") : "");
         panel.With(Kit.Text(Lang.T("Ab Hof diesen Monat", "Cellar door this month"), 24, 14, 348, 32, 22, Theme.Gold, bold: true, serif: true));
         panel.With(Kit.Text(Lang.En ? $"≈ {Util.FormatNumber(demand)} bottles" : $"≈ {Util.FormatNumber(demand)} Flaschen", 24, 48, 348, 44, 32, Theme.Cream, bold: true, serif: true));
         panel.With(Kit.Text(Lang.En ? $"Demand via {channels}" : $"Nachfrage über {channels}", 24, 92, 348, 24, 16, Theme.CreamSoft));

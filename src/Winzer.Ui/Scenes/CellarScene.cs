@@ -97,7 +97,7 @@ internal static class CellarParts
     public static SkiaShape Inspector() => Kit.Card(1260, 20, 524, 948, 22);
 
     /// <summary>Preis je Flasche mit Cent</summary>
-    public static string Cents(double value) => value.ToString("#,##0.00", Lang.En ? CultureInfo.InvariantCulture : German) + " €";
+    public static string Cents(double value) => Lang.En ? "€" + value.ToString("#,##0.00", CultureInfo.InvariantCulture) : value.ToString("#,##0.00", German) + " €";
 
     public static string Hl(double value) => Util.FormatNumber(value, 1) + " hl";
 
@@ -236,6 +236,6 @@ internal static class CellarParts
 
     /// <summary>Wo der Wein weggeht: „Ab Hof &amp; online gehen etwa … Flaschen im Monat weg.“</summary>
     public static string DemandText(Player player) =>
-        Lang.En ? $"About {Util.FormatNumber(Live.Demand(player))} bottles a month sell at the cellar door{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & wine boutique" : "")}."
+        Lang.En ? $"About {Util.FormatNumber(Live.Demand(player))} bottles a month sell at the cellar door{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & Vinothek" : "")}."
             : $"Ab Hof{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & Vinothek" : "")} gehen etwa {Util.FormatNumber(Live.Demand(player))} Flaschen im Monat weg.";
 }

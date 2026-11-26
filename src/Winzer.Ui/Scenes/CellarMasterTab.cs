@@ -82,7 +82,7 @@ internal static class CellarMasterTab
             var delta = candidate.Talent - now;
             card.With(Kit.Row(Lang.T("Güte ggü. heute", "Quality vs. today"), Signed(delta), 24, 240, 340, delta > 0 ? Theme.Good : delta < 0 ? Theme.Alert : Theme.Ink, 19));
             var pay = candidate.Salary - current.Salary;
-            card.With(Kit.Row(Lang.T("Gehalt ggü. heute", "Salary vs. today"), $"{Signed(pay)} €", 24, 276, 340, pay > 0 ? Theme.Alert : pay < 0 ? Theme.Good : Theme.Ink, 19));
+            card.With(Kit.Row(Lang.T("Gehalt ggü. heute", "Salary vs. today"), (Lang.En ? Signed(pay).Insert(1, "€") : $"{Signed(pay)} €"), 24, 276, 340, pay > 0 ? Theme.Alert : pay < 0 ? Theme.Good : Theme.Ink, 19));
         }
         else
         {
@@ -177,7 +177,7 @@ internal static class CellarMasterTab
         card.With(Kit.Row(Lang.T("Güte für jede Lese", "Quality for every harvest"), Lang.T("kein Zuschlag", "no bonus"), CellarParts.Pad, 320, CellarParts.Inner, Theme.Alert));
         card.With(Kit.Row(Lang.T("Sekt", "Sparkling wine"), Lang.T("nicht möglich", "not possible"), CellarParts.Pad, 356, CellarParts.Inner, Theme.Alert));
         card.With(Kit.Row(Lang.T("Barrique-Ausbau", "Barrique aging"), Lang.T("nicht möglich", "not possible"), CellarParts.Pad, 392, CellarParts.Inner, Theme.Alert));
-        card.With(Kit.Row(Lang.T("Gehalt", "Salary"), Lang.T("0 €/Monat", "0 €/month"), CellarParts.Pad, 428, CellarParts.Inner));
+        card.With(Kit.Row(Lang.T("Gehalt", "Salary"), Lang.T("0 €/Monat", "€0/month"), CellarParts.Pad, 428, CellarParts.Inner));
         card.With(CellarParts.Divider(474));
         card.With(Kit.Text(Lang.T("Was Kellermeister können", "What cellar masters can do"), CellarParts.Pad, 488, CellarParts.Inner, 30, 21, Theme.Wine, bold: true, serif: true));
         var y = 528.0;

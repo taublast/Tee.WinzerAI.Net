@@ -46,7 +46,7 @@ public static partial class MarketScene
     internal static SkiaControl Rule(double y) => Kit.Box(32, y, 460, 2, Theme.PaperLine);
 
     /// <summary>Preis je Flasche mit Cent, z. B. „8,40 €“</summary>
-    internal static string Price(double value) => value.ToString("#,##0.00", Lang.En ? CultureInfo.InvariantCulture : German) + " €";
+    internal static string Price(double value) => Lang.En ? "€" + value.ToString("#,##0.00", CultureInfo.InvariantCulture) : value.ToString("#,##0.00", German) + " €";
 
     internal static string Signed(double value, int decimals = 1) =>
         (value < 0 ? "−" : "+") + Util.FormatNumber(Math.Abs(value), decimals);
