@@ -226,7 +226,7 @@ public static class Sounds
     public static Sound? ForChange(GameState before, GameState after)
     {
         var fresh = after.Log.Skip(Math.Max(0, after.Log.Count - Math.Max(0, NewEntries(before, after)))).ToList();
-        if (fresh.Any(e => e.Text.Contains("Weinskandal") || e.Text.Contains("Wine scandal"))) return Sound.Scandal;
+        if (fresh.Any(e => e.Text.Contains("Weinskandal") || e.Text.Contains("wine scandal", StringComparison.OrdinalIgnoreCase))) return Sound.Scandal;
         if (fresh.Any(e => e.Text.Contains("Medaille") || e.Text.Contains("medal", StringComparison.OrdinalIgnoreCase) || e.Text.Contains("🥇") || e.Text.Contains("🥈") || e.Text.Contains("🥉"))) return Sound.Medal;
         if (fresh.Any(e => e.Text.Contains("Frost") || e.Text.Contains("frost"))) return Sound.Frost;
         if (after.Month != before.Month || after.Year != before.Year) return Sound.Month;
