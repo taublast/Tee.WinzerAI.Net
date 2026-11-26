@@ -23,6 +23,18 @@ public sealed class AppHost(ISaveStore store, IAudio audio)
         return true;
     }
 
+    readonly bool language = UseStoredLanguage(store);
+
+    static bool UseStoredLanguage(ISaveStore store) => Lang.En = store.GetSetting("language") == "en";
+
+    /// <summary>Wechselt die Sprache aller Texte und merkt sie sich für den nächsten Start.</summary>
+    public void SetLanguage(bool english)
+    {
+        Lang.En = english;
+        Store.SetSetting("language", english ? "en" : "de");
+        Changed?.Invoke();
+    }
+
     public ISaveStore Store { get; } = store;
     public IAudio Audio { get; } = audio;
     /// <summary>Lizenzhinweise der mitgelieferten Fremdsoftware für die Lizenzseite</summary>

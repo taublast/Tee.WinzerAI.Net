@@ -193,4 +193,27 @@ internal static class MenuPages
         MenuUi.Footer(layer, "Hauptmenü", () => MainMenu.Go(app, MainMenu.Home), "Lizenztexte öffnen", () => app.Notices.Open(),
             nextProblem: text is null ? "Nur in der ausgelieferten Fassung" : null);
     }
+
+    // ---- Einstellungen ----
+
+    public static void SettingsPage(SkiaLayout layer, AppHost app)
+    {
+        MenuUi.Header(layer, Lang.T("Einstellungen", "Settings"), Lang.T("Gilt für alle Spielstände", "Applies to all saved games"), 1100);
+        var card = Kit.Card(410, 230, 1100, 400, 24);
+        card.With(Kit.Box(0, 0, 1100, 14, Theme.Wine, 7));
+        card.With(Kit.Text(Lang.T("Sprache", "Language"), 60, 50, 980, 54, 40, Theme.Ink, bold: true, serif: true));
+        (bool En, string Name, string Sub)[] languages = [(false, "Deutsch", "German"), (true, "English", "Englisch")];
+        for (var i = 0; i < languages.Length; i++)
+        {
+            var (en, name, sub) = languages[i];
+            var tile = MenuUi.Option(60 + i * 500, 140, 480, 104, Lang.En == en, () => app.SetLanguage(en));
+            tile.With(Kit.Text(name, 32, 16, 420, 40, 30, Theme.Ink, bold: true, serif: true));
+            tile.With(Kit.Text(sub, 32, 60, 420, 28, 20, Theme.InkSoft));
+            card.With(tile);
+        }
+        card.With(Kit.Text(Lang.T("Meldungen, die schon im Spiel stehen, bleiben in der Sprache, in der sie entstanden sind.", "Messages already in a game stay in the language they were written in."),
+            60, 280, 980, 64, 21, Theme.InkSoft, maxLines: 2));
+        layer.With(card);
+        MenuUi.Footer(layer, Lang.T("Hauptmenü", "Main menu"), () => MainMenu.Go(app, MainMenu.Home));
+    }
 }

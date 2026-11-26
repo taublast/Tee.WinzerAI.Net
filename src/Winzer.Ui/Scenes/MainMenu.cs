@@ -18,14 +18,14 @@ namespace Winzer.Ui.Scenes;
 /// </summary>
 public static class MainMenu
 {
-    internal const int Home = 0, StepMode = 1, StepRegion = 2, StepPlayers = 3, Saves = 4, Daily = 5, Licenses = 6;
+    internal const int Home = 0, StepMode = 1, StepRegion = 2, StepPlayers = 3, Saves = 4, Daily = 5, Licenses = 6, Settings = 7;
 
     public static SkiaControl Build(AppHost app)
     {
         var setup = MenuSetup.Of(app);
         var step = app.Menu.Step;
         var layer = Kit.Layer(0, 0, Kit.DesignWidth, Kit.DesignHeight);
-        var home = step is < StepMode or > Licenses;
+        var home = step is < StepMode or > Settings;
         layer.With(Kit.Paint(0, 0, Kit.DesignWidth, Kit.DesignHeight, (c, w, h) => MenuArt.Landscape(c, w, h, home)));
         if (!home) layer.With(Kit.Box(0, 0, Kit.DesignWidth, Kit.DesignHeight, Theme.C("#b8140a0e")));
         switch (step)
@@ -36,6 +36,7 @@ public static class MainMenu
             case Saves: MenuPages.SavesPage(layer, app, setup); break;
             case Daily: MenuPages.DailyPage(layer, app, setup); break;
             case Licenses: MenuPages.LicensesPage(layer, app); break;
+            case Settings: MenuPages.SettingsPage(layer, app); break;
             default: HomePage(layer, app, setup); break;
         }
         return layer;
@@ -95,6 +96,9 @@ public static class MainMenu
         layer.With(panel);
 
         layer.With(Kit.Text("Alle Weingüter, Personen, Siegel und Prämierungen sind frei erfunden.", 116, 992, 640, 30, 19, Theme.CreamSoft));
+        layer.With(Kit.Box(1490, 980, 158, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
+            .With(Kit.Text(Lang.T("Einstellungen", "Settings"), 0, 10, 158, 28, 19, Theme.Cream, align: Align.Center))
+            .Tap(() => Go(app, Settings)));
         layer.With(Kit.Box(1660, 980, 150, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
             .With(Kit.Text("Lizenzen", 0, 10, 150, 28, 19, Theme.Cream, align: Align.Center))
             .Tap(() => Go(app, Licenses)));
