@@ -270,6 +270,23 @@ public static class Kit
 
     static readonly SKTypeface SansFace = SKTypeface.FromFamilyName(Theme.Sans);
 
+    // Maße der Schrift je Punkt Schriftgröße: Grundlinie unter der Oberkante des Labels, Höhe der Großbuchstaben
+    static readonly (double Ascent, double Cap) SansMetrics = MeasureSans();
+
+    static (double, double) MeasureSans()
+    {
+        using var font = new SKFont(SansFace, 100);
+        var metrics = font.Metrics;
+        return (-metrics.Ascent / 100, metrics.CapHeight / 100);
+    }
+
+    /// <summary>
+    /// Oberkante eines einzeiligen Labels, damit die Buchstaben (Großbuchstabenhöhe bis Grundlinie) senkrecht in der
+    /// Mitte von <paramref name="center"/> sitzen. Die Zeilenbox selbst zu zentrieren setzt den Text zu tief, weil die
+    /// Schrift oberhalb der Großbuchstaben mehr Raum lässt als unter der Grundlinie.
+    /// </summary>
+    static double CapTop(double center, double size) => center - (SansMetrics.Ascent - SansMetrics.Cap / 2) * size;
+
     /// <summary>
     /// Gemessene Breite eines einzeiligen Textes in Entwurfseinheiten. Entscheidet, ob ein Text umbrechen muss –
     /// eine Schätzung über die Zeichenzahl lag oft daneben und reservierte dann Platz für eine Zeile, die es nicht gab.
@@ -353,7 +370,7 @@ public static class Kit
         var pad = align == Align.Center ? 8 : 22;
         if (line is null)
         {
-            box.With(Text(title, pad, (h - fontSize * 1.4) / 2, w - 2 * pad, fontSize * 1.5, fontSize, titleColor, bold: true, align: align));
+            box.With(Text(title, pad, CapTop(h / 2, fontSize), w - 2 * pad, fontSize * 1.5, fontSize, titleColor, bold: true, align: align));
         }
         else
         {
@@ -366,8 +383,11 @@ public static class Kit
             var twoLines = TextWidth(text, subSize) > room && h >= fontSize * 1.4 + 50;
             if (twoLines) subSize = 15;
             var subHeight = twoLines ? 46 : 24;
-            // Titel und Unterzeile als ein Block, senkrecht in der Schaltfläche zentriert
-            var top = Math.Max(4, (h - fontSize * 1.4 - subHeight) / 2);
+            // Titel und Unterzeile als ein Block, senkrecht in der Schaltfläche zentriert: von der Oberkante der
+            // Großbuchstaben im Titel bis zur Grundlinie der letzten Unterzeile
+            var (ascent, cap) = SansMetrics;
+            var glyphs = fontSize * 1.4 - (ascent - cap) * fontSize + ascent * subSize + (twoLines ? subHeight - subSize * 1.4 : 0);
+            var top = Math.Max(4, (h - glyphs) / 2 - (ascent - cap) * fontSize);
             box.With(
                 Text(title, pad, top, w - 2 * pad, fontSize * 1.5, fontSize, titleColor, bold: true, align: align),
                 Text(text, pad, top + fontSize * 1.4, w - 2 * pad, subHeight, subSize, subColor, align: align, maxLines: twoLines ? 2 : 1));
