@@ -1,3 +1,4 @@
+using Winzer.Engine;
 using DrawnUi.Draw;
 using DrawnUi.Views;
 using SkiaSharp;
@@ -397,9 +398,9 @@ public static class Kit
     {
         var layer = Layer(x, y, w, 36);
         var color = dark ? Theme.CreamSoft : Theme.InkSoft;
-        layer.With(Text($"{noun} {page + 1} von {Math.Max(1, pageCount)}", 0, 7, w - 90, 24, 16, color));
-        layer.With(IconButton("‹", w - 80, 0, 36, () => setPage(page - 1), dark, page > 0, "Zurückblättern"));
-        layer.With(IconButton("›", w - 38, 0, 36, () => setPage(page + 1), dark, page < pageCount - 1, "Weiterblättern"));
+        layer.With(Text(Lang.En ? $"{(noun == "Seite" ? "Page" : noun)} {page + 1} of {Math.Max(1, pageCount)}" : $"{noun} {page + 1} von {Math.Max(1, pageCount)}", 0, 7, w - 90, 24, 16, color));
+        layer.With(IconButton("‹", w - 80, 0, 36, () => setPage(page - 1), dark, page > 0, Lang.T("Zurückblättern", "Previous page")));
+        layer.With(IconButton("›", w - 38, 0, 36, () => setPage(page + 1), dark, page < pageCount - 1, Lang.T("Weiterblättern", "Next page")));
         return layer;
     }
 
@@ -447,7 +448,7 @@ public static class Kit
         }
         layer.With(Box(Math.Clamp(w * share - 17, 0, w - 34), -3, 34, 34, Theme.Wine, 17, Theme.Paper, 4));
         layer.With(Text(caption, 0, 42, w - 230, 26, 18, Theme.InkSoft));
-        string[] names = ["¼", "½", "alles"];
+        string[] names = ["¼", "½", Lang.T("alles", "all")];
         double[] values = [0.25, 0.5, 1];
         for (var i = 0; i < 3; i++)
         {
