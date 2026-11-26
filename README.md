@@ -14,6 +14,8 @@ Rundenbasierte Weingut-Simulation – Neuauflage von [Tee.WinzerAI](https://gith
 
 ## English
 
+![The estate in May of year 2](docs/screenshot-en.png)
+
 WinzerAI is a turn-based wine estate simulation for Windows. Take over a 10 ha estate in one of Germany's 13 wine regions, tend your vineyards through frost, hail and drought, press and age your wines, and sell them at the cellar door, to wholesalers, to importers and at auctions. Up to four estates compete, against clever computer winemakers or other humans on the same device. The whole interface is drawn with DrawnUi on a single canvas.
 
 The game is fully playable in English: open **⚙️ Settings** in the main menu and pick **English**. The choice is saved and applies at once, also in a running game. Proper names stay German: wine regions, grape varieties, the German quality levels (Kabinett, Spätlese …) and the fictional estates.
