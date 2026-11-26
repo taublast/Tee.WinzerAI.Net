@@ -124,7 +124,7 @@ public static class Overlays
     public static SkiaControl Menu(GameSession session, AppHost app)
     {
         var back = Backdrop(onTap: () => session.Nav.Show(Overlay.None));
-        var card = Kit.Card(660, 274, 600, 532, 24);
+        var card = Kit.Card(660, 231, 600, 618, 24);
         card.Block();
         card.With(Kit.Text(Lang.T("Menü", "Menu"), 48, 40, 504, 50, 36, Theme.Ink, bold: true, serif: true));
         card.With(Kit.Text(Lang.T("Der Spielstand wird nach jedem Zug gesichert.", "The game is saved after every turn."), 48, 96, 504, 30, 18, Theme.InkSoft));
@@ -135,8 +135,10 @@ public static class Overlays
             app.Store.SetSetting("muted", app.Audio.Muted ? "1" : "0");
             session.Nav.Notify();
         }, fontSize: 24));
-        card.With(Kit.Button(Lang.T("Zum Hauptmenü", "To main menu"), 48, 322, 504, 72, app.ShowMenu, fontSize: 24));
-        card.With(Kit.Button(Lang.T("Speichern und beenden", "Save and quit"), 48, 408, 504, 72, () =>
+        card.With(Kit.Button(app.FullScreen ? Lang.T("Vollbild ausschalten", "Full screen off") : Lang.T("Vollbild einschalten", "Full screen on"), 48, 322, 504, 72,
+            app.ToggleFullScreen, fontSize: 24));
+        card.With(Kit.Button(Lang.T("Zum Hauptmenü", "To main menu"), 48, 408, 504, 72, app.ShowMenu, fontSize: 24));
+        card.With(Kit.Button(Lang.T("Speichern und beenden", "Save and quit"), 48, 494, 504, 72, () =>
         {
             // Erst sichern, dann schließen. Scheitert das Sichern, bleibt das Spiel offen und meldet es.
             if (session.Save()) app.Quit();
