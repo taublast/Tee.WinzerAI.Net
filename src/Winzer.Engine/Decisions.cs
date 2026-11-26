@@ -64,7 +64,7 @@ public static class Decisions
     }
 
     /// <summary>Ein Computer-Nachbar im selben Gebiet, der nicht verfeindet ist – der freundlichste zuerst</summary>
-    static Player? Neighbour(EventContext ctx, double minRelation = -10)
+    static Player? Neighbor(EventContext ctx, double minRelation = -10)
     {
         if (ctx.Player.Ai is not null) return null;
         return ctx.State.Players
@@ -282,10 +282,10 @@ public static class Decisions
         // ── Nachbarschaft: Angebote freundlicher Computergegner ─────────────────────
         new()
         {
-            Id = "kooperation-messestand", Rarity = Rarity.Gelegentlich, When = c => Neighbour(c) is not null,
+            Id = "kooperation-messestand", Rarity = Rarity.Gelegentlich, When = c => Neighbor(c) is not null,
             Offer = c =>
             {
-                var partner = Neighbour(c)!;
+                var partner = Neighbor(c)!;
                 var share = c.Between(3000, 5000, 500);
                 return new Decision
                 {
@@ -318,10 +318,10 @@ public static class Decisions
         new()
         {
             Id = "kooperation-weinkauf", Rarity = Rarity.Gelegentlich, Months = [3, 4, 5, 6, 7, 8],
-            When = c => Neighbour(c) is not null && SellableBatch(c) is not null,
+            When = c => Neighbor(c) is not null && SellableBatch(c) is not null,
             Offer = c =>
             {
-                var partner = Neighbour(c)!;
+                var partner = Neighbor(c)!;
                 var batch = SellableBatch(c)!;
                 var hectoliters = Math.Min(batch.Hectoliters, c.Between(20, 40, 5));
                 var price = Js.Round(Market.BulkPricePerHl(batch, c.State, c.Player) * hectoliters * 1.3);
@@ -358,10 +358,10 @@ public static class Decisions
         },
         new()
         {
-            Id = "erntehilfe", Rarity = Rarity.Selten, Months = [9, 10], When = c => Events.HasBearing(c) && Neighbour(c, 20) is not null,
+            Id = "erntehilfe", Rarity = Rarity.Selten, Months = [9, 10], When = c => Events.HasBearing(c) && Neighbor(c, 20) is not null,
             Offer = c =>
             {
-                var partner = Neighbour(c, 20)!;
+                var partner = Neighbor(c, 20)!;
                 return new Decision
                 {
                     Title = (Lang.En ? $"🧺 Harvest help from {partner.Name}" : $"🧺 Erntehilfe von {partner.Name}"),

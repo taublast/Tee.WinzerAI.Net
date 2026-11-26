@@ -100,7 +100,7 @@ public static class Milestones
         new() { Id = "bekanntheit-80", Icon = "🌟", NameDe = "Kultweingut", NameEn = "Cult Estate", TextDe = "Bekanntheit 80.", TextEn = "Reputation 80.", Tier = Tier.Gold, Progress = (_, p) => (Math.Floor(p.Reputation), 80) },
 
         // Betrieb
-        new() { Id = "vinothek", Icon = "🏠", NameDe = "Probierstube", NameEn = "Tasting Room", TextDe = "Eine Vinothek eröffnet.", TextEn = "Opened a Vinothek.", Tier = Tier.Bronze, Progress = Flag((_, p) => p.HasVinothek) },
+        new() { Id = "vinothek", Icon = "🏠", NameDe = "Probierstube", NameEn = "Tasting Room", TextDe = "Eine Vinothek eröffnet.", TextEn = "Opened a wine room.", Tier = Tier.Bronze, Progress = Flag((_, p) => p.HasVinothek) },
         new() { Id = "onlineshop", Icon = "🛒", NameDe = "Online", NameEn = "Online", TextDe = "Einen Online-Shop gestartet.", TextEn = "Launched an online shop.", Tier = Tier.Bronze, Progress = Flag((_, p) => p.HasOnlineShop) },
         new() { Id = "bio", Icon = "🌿", NameDe = "Bio-zertifiziert", NameEn = "Certified Organic", TextDe = "Das erste Bio-Siegel erhalten.", TextEn = "Received your first organic seal.", Tier = Tier.Silber, Progress = Flag((_, p) => p.BioLabel is not null) },
         new() { Id = "lunaris", Icon = "🌙", NameDe = "Biodynamisch", NameEn = "Biodynamic", TextDe = "Das Lunaris-Siegel erhalten.", TextEn = "Received the Lunaris seal.", Tier = Tier.Gold, Progress = Flag((_, p) => p.BioLabel == BioLabel.Biodynamisch) },

@@ -236,6 +236,6 @@ internal static class CellarParts
 
     /// <summary>Wo der Wein weggeht: „Ab Hof &amp; online gehen etwa … Flaschen im Monat weg.“</summary>
     public static string DemandText(Player player) =>
-        Lang.En ? $"About {Util.FormatNumber(Live.Demand(player))} bottles a month sell at the cellar door{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & Vinothek" : "")}."
+        Lang.En ? $"About {Util.FormatNumber(Live.Demand(player))} bottles a month sell at the cellar door{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & wine room" : "")}."
             : $"Ab Hof{(player.HasOnlineShop ? " & online" : "")}{(player.HasVinothek ? " & Vinothek" : "")} gehen etwa {Util.FormatNumber(Live.Demand(player))} Flaschen im Monat weg.";
 }

@@ -96,8 +96,8 @@ public static class MainMenu
         layer.With(panel);
 
         layer.With(Kit.Text(Lang.T("Alle Weingüter, Personen, Siegel und Prämierungen sind frei erfunden.", "All estates, people, seals and wine awards are fictional."), 116, 992, 640, 30, 19, Theme.CreamSoft));
-        layer.With(Kit.Box(1490, 980, 158, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
-            .With(Kit.Text(Lang.T("Einstellungen", "Settings"), 0, 10, 158, 28, 19, Theme.Cream, align: Align.Center))
+        layer.With(Kit.Box(1450, 980, 198, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
+            .With(Kit.Text("⚙️ " + Lang.T("Einstellungen", "Settings"), 0, 10, 198, 28, 19, Theme.Cream, align: Align.Center))
             .Tap(() => Go(app, Settings)));
         layer.With(Kit.Box(1660, 980, 150, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
             .With(Kit.Text(Lang.T("Lizenzen", "Licenses"), 0, 10, 150, 28, 19, Theme.Cream, align: Align.Center))

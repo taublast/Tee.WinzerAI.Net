@@ -51,12 +51,12 @@ public static class VillageScene
         }
 
         var announced = state.Auction is { } auction && auction.Lots.Any(l => l.RegionId == player.RegionId);
-        scene.With(Kit.Tabs(28, 20, Lang.En ? ["Standings", "Neighbourhood", "Auction"] : ["Rangliste", "Nachbarschaft", "Versteigerung"], tab, session.Nav.SetTab, [0, 0, announced ? 1 : 0]));
+        scene.With(Kit.Tabs(28, 20, Lang.En ? ["Standings", "Neighborhood", "Auction"] : ["Rangliste", "Nachbarschaft", "Versteigerung"], tab, session.Nav.SetTab, [0, 0, announced ? 1 : 0]));
 
         switch (tab)
         {
             case 1:
-                Neighbours(session, scene);
+                Neighbors(session, scene);
                 break;
             case 2:
                 AuctionTab(session, scene);
@@ -305,7 +305,7 @@ public static class VillageScene
 
     // ---- Reiter 1: Nachbarschaft ----
 
-    static void Neighbours(GameSession session, SkiaLayout scene)
+    static void Neighbors(GameSession session, SkiaLayout scene)
     {
         var state = session.State;
         var player = session.Player;
@@ -314,8 +314,8 @@ public static class VillageScene
 
         var intro = Kit.Glass(28, PanelTop, 1204, 96, 22);
         intro.With(Kit.Text(
-            Lang.En ? "This is how the AI rivals feel about you. Cooperation makes neighbours friendlier – sabotage you get caught at, vineyards snatched away and " +
-            "wine scandals sour them. Friendly neighbours in the same region offer cooperation, annoyed ones launch discount campaigns or " +
+            Lang.En ? "This is how the AI rivals feel about you. Cooperation makes neighbors friendlier – sabotage you get caught at, vineyards snatched away and " +
+            "wine scandals sour them. Friendly neighbors in the same region offer cooperation, annoyed ones launch discount campaigns or " +
             "complain publicly. In time, tempers cool." : "So stehen die Computergegner zu dir. Kooperationen machen Nachbarn freundlicher – erwischte Sabotage, weggeschnappte Weinberge und " +
             "Weinskandale verstimmen sie. Freundliche Nachbarn im selben Gebiet bieten Zusammenarbeit an, verstimmte starten Rabattaktionen oder " +
             "beschweren sich öffentlich. Mit der Zeit beruhigen sich die Gemüter.",
@@ -326,11 +326,11 @@ public static class VillageScene
         {
             var empty = Kit.Glass(28, PanelTop + 110, 1204, PanelHeight - 110, 22);
             empty.With(Kit.Paint(552, 90, 100, 100, (c, w, _) => VillagePaint.Face(c, w, 0)));
-            empty.With(Kit.Text(Lang.T("Keine Nachbarn im Spiel", "No neighbours in the game"), 0, 210, 1204, 40, 28, Theme.Gold, bold: true, serif: true, align: Align.Center));
+            empty.With(Kit.Text(Lang.T("Keine Nachbarn im Spiel", "No neighbors in the game"), 0, 210, 1204, 40, 28, Theme.Gold, bold: true, serif: true, align: Align.Center));
             empty.With(Kit.Text(Lang.T("Du wirtschaftest allein – es gibt niemanden, mit dem du dich gut oder schlecht stellen könntest.", "You run your estate alone – there is no one to get on well or badly with."), 0, 256, 1204, 30, 19, Theme.CreamSoft, align: Align.Center));
             scene.With(empty);
             var none = Inspector();
-            none.With(Kit.Text(Lang.T("Nachbarschaft", "Neighbourhood"), 32, 26, 460, 44, 32, Theme.Ink, bold: true, serif: true));
+            none.With(Kit.Text(Lang.T("Nachbarschaft", "Neighborhood"), 32, 26, 460, 44, 32, Theme.Ink, bold: true, serif: true));
             none.With(Kit.Text(Lang.T("Ohne Mitspieler gibt es weder Verhältnisse noch Intrigen.", "Without other players there are no relations and no intrigues."), 32, 78, 460, 56, 19, Theme.InkSoft, maxLines: 2));
             scene.With(none);
             return;
@@ -371,7 +371,7 @@ public static class VillageScene
         int? level = isAi ? VillagePaint.RelationLevel(value) : null;
         card.With(Kit.Paint(22, 20, 92, 92, (c, s, _) => VillagePaint.Face(c, s, level)));
         card.With(Kit.Text(rival.Name, 132, 16, 440, 34, 25, Theme.Ink, bold: true, serif: true));
-        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? Lang.T(" (Nachbar)", " (neighbour)") : "");
+        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? Lang.T(" (Nachbar)", " (neighbor)") : "");
         card.With(Kit.Text(isAi ? $"{where} · {Lang.T("KI", "AI")} {Ai.AiProfiles[rival.Ai!.Value].Name}" : $"{where} · {Lang.T("Mitspieler", "Player")}", 132, 52, 440, 24, 16, Theme.InkSoft));
 
         if (isAi)
@@ -425,11 +425,11 @@ public static class VillageScene
         var same = rival.RegionId == player.RegionId;
         return VillagePaint.RelationLevel(value) switch
         {
-            2 or 1 => same ? Lang.T("Freundlich gesinnt: bietet dir als Nachbar gelegentlich Zusammenarbeit an.", "Friendly: as a neighbour, occasionally offers you cooperation.")
-                : Lang.T("Freundlich gesinnt – Zusammenarbeit bieten aber nur Nachbarn im selben Gebiet an.", "Friendly – but only neighbours in the same region offer cooperation."),
+            2 or 1 => same ? Lang.T("Freundlich gesinnt: bietet dir als Nachbar gelegentlich Zusammenarbeit an.", "Friendly: as a neighbor, occasionally offers you cooperation.")
+                : Lang.T("Freundlich gesinnt – Zusammenarbeit bieten aber nur Nachbarn im selben Gebiet an.", "Friendly – but only neighbors in the same region offer cooperation."),
             0 => Lang.T("Neutral: weder Angebote noch Ärger zu erwarten.", "Neutral: expect neither offers nor trouble."),
             -1 => same ? Lang.T("Verstimmt: kann eine Rabattaktion gegen dich starten (weniger Kundschaft ab Hof).", "Annoyed: may launch a discount campaign against you (fewer cellar-door customers).")
-                : Lang.T("Verstimmt – Rabattaktionen starten aber nur Nachbarn im selben Gebiet.", "Annoyed – but only neighbours in the same region launch discount campaigns."),
+                : Lang.T("Verstimmt – Rabattaktionen starten aber nur Nachbarn im selben Gebiet.", "Annoyed – but only neighbors in the same region launch discount campaigns."),
             _ => Lang.En ? "Hostile: complains publicly about you, which costs reputation" + (same ? ", and launches discount campaigns." : ".") : "Verfeindet: beschwert sich öffentlich über dich, das kostet Bekanntheit" + (same ? ", und startet Rabattaktionen." : "."),
         };
     }
@@ -439,7 +439,7 @@ public static class VillageScene
         var player = session.Player;
         var card = Inspector();
         card.With(Kit.Text(rival.Name, 32, 26, 460, 44, 30, Theme.Ink, bold: true, serif: true));
-        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? Lang.T(" (Nachbar)", " (neighbour)") : "");
+        var where = Regions.All[rival.RegionId].Name + (rival.RegionId == player.RegionId ? Lang.T(" (Nachbar)", " (neighbor)") : "");
         var y = 72.0;
         if (rival.Ai is { } ai)
         {
@@ -557,7 +557,7 @@ public static class VillageScene
         head.With(Kit.Paint(22, 14, 68, 68, (c, w, _) => VillagePaint.Gavel(c, w, Theme.SkGold, Theme.SkGoldDark)));
         head.With(Kit.Text(Lang.En ? $"Vineyard auction {(announced ? $"in {Game.MonthNames[auction.Month - 1]}" : "under way")}" : $"Weinbergversteigerung {(announced ? $"im {Game.MonthNames[auction.Month - 1]}" : "läuft")}", 104, 10, 700, 36, 27, Theme.Gold, bold: true, serif: true));
         head.With(Kit.Text(announced
-                ? Lang.En ? $"Live bidding next month: you bid round by round against neighbours and outside investors. Whoever pays the most gets the hammer. You can currently afford up to {Util.FormatEuro(Auction.MaxAffordableBid(player))}." : $"Nächsten Monat wird live geboten: Du bietest Runde für Runde gegen Nachbarn und auswärtige Investoren. Wer am meisten zahlt, bekommt den Zuschlag. Finanzierbar sind derzeit bis zu {Util.FormatEuro(Auction.MaxAffordableBid(player))}."
+                ? Lang.En ? $"Live bidding next month: you bid round by round against neighbors and outside investors. Whoever pays the most gets the hammer. You can currently afford up to {Util.FormatEuro(Auction.MaxAffordableBid(player))}." : $"Nächsten Monat wird live geboten: Du bietest Runde für Runde gegen Nachbarn und auswärtige Investoren. Wer am meisten zahlt, bekommt den Zuschlag. Finanzierbar sind derzeit bis zu {Util.FormatEuro(Auction.MaxAffordableBid(player))}."
                 : Lang.T("Die Versteigerung dieses Monats: Zuschläge und offene Lose in deinem Anbaugebiet.", "This month's auction: sold and open lots in your region."),
             104, 46, 1076, 46, 16, Theme.Cream, maxLines: 2));
         scene.With(head);
@@ -670,7 +670,7 @@ public static class VillageScene
         var (min, max) = Economy.AuctionInterval;
         panel.With(Kit.Text(
             Lang.En ? $"Roughly every {Util.FormatNumber(min)} to {Util.FormatNumber(max)} months, one to three vineyards in each region go under the hammer. " +
-            "The lots are posted here a month ahead, with live bidding the following month – round by round against neighbours and outside investors."
+            "The lots are posted here a month ahead, with live bidding the following month – round by round against neighbors and outside investors."
             : $"Etwa alle {Util.FormatNumber(min)} bis {Util.FormatNumber(max)} Monate kommen in jedem Anbaugebiet ein bis drei Weinberge unter den Hammer. " +
             "Die Lose werden einen Monat vorher hier ausgehängt, geboten wird im Folgemonat live – Runde für Runde gegen Nachbarn und auswärtige Investoren.",
             216, 84, 950, 84, 19, Theme.Cream, maxLines: 3));

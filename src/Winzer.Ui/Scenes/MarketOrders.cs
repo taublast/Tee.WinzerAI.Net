@@ -273,7 +273,7 @@ public static partial class MarketScene
         var panel = Kit.Glass(834, 716, 396, 244);
         var demand = Live.Demand(player);
         var (ready, sold, net) = FarmGate(state, player);
-        var channels = Lang.T("Hofladen", "Farm shop") + (player.HasOnlineShop ? Lang.T(", Online-Shop", ", online shop") : "") + (player.HasVinothek ? Lang.T(", Vinothek", ", Vinothek") : "");
+        var channels = Lang.T("Hofladen", "Farm shop") + (player.HasOnlineShop ? Lang.T(", Online-Shop", ", online shop") : "") + (player.HasVinothek ? Lang.T(", Vinothek", ", wine room") : "");
         panel.With(Kit.Text(Lang.T("Ab Hof diesen Monat", "Cellar door this month"), 24, 14, 348, 32, 22, Theme.Gold, bold: true, serif: true));
         panel.With(Kit.Text(Lang.En ? $"≈ {Util.FormatNumber(demand)} bottles" : $"≈ {Util.FormatNumber(demand)} Flaschen", 24, 48, 348, 44, 32, Theme.Cream, bold: true, serif: true));
         panel.With(Kit.Text(Lang.En ? $"Demand via {channels}" : $"Nachfrage über {channels}", 24, 92, 348, 24, 16, Theme.CreamSoft));

@@ -160,7 +160,7 @@ public static class EstateScene
         // Gebäude
         scene.With(Building(Lang.T("Kontor", "Office"), 508, 822, badges.GetValueOrDefault(Scene.Kontor), () => session.Nav.Go(Scene.Kontor)));
         scene.With(Building(Lang.T("Keller", "Cellar"), 778, 822, badges.GetValueOrDefault(Scene.Keller), () => session.Nav.Go(Scene.Keller)));
-        scene.With(Building(player.HasVinothek ? "Vinothek" : Lang.T("Hofladen", "Farm shop"), 1048, 822, badges.GetValueOrDefault(Scene.Markt), () => session.Nav.Go(Scene.Markt)));
+        scene.With(Building(player.HasVinothek ? Lang.T("Vinothek", "Wine room") : Lang.T("Hofladen", "Farm shop"), 1048, 822, badges.GetValueOrDefault(Scene.Markt), () => session.Nav.Go(Scene.Markt)));
         scene.With(Kit.Box(448, 660, 250, 150, Theme.Clear).Tap(() => session.Nav.Go(Scene.Kontor)));
         scene.With(Kit.Box(738, 700, 210, 110, Theme.Clear).Tap(() => session.Nav.Go(Scene.Keller)));
         scene.With(Kit.Box(998, 704, 230, 106, Theme.Clear).Tap(() => session.Nav.Go(Scene.Markt)));

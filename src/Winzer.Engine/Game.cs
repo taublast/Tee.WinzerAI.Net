@@ -357,7 +357,7 @@ public static class Game
             case GameAction.ToBarrique a:
                 return Cellar.ValidateToBarrique(player, a.BatchId);
             case GameAction.BuildVinothek:
-                if (player.HasVinothek) return Lang.T("Die Vinothek steht bereits.", "The Vinothek is already built.");
+                if (player.HasVinothek) return Lang.T("Die Vinothek steht bereits.", "The wine room is already built.");
                 if (player.Money < Economy.VinothekCost) return (Lang.En ? $"Not enough money (need {Util.FormatEuro(Economy.VinothekCost)})." : $"Nicht genug Geld (benötigt {Util.FormatEuro(Economy.VinothekCost)}).");
                 return null;
             case GameAction.EndTurn:
@@ -592,7 +592,7 @@ public static class Game
                 player.Money -= Economy.VinothekCost;
                 player.HasVinothek = true;
                 Rules.ChangeReputation(player, Economy.VinothekReputation);
-                Util.AddLog(next, null, (Lang.En ? $"{player.Name} opens a Vinothek with a tasting room." : $"{player.Name} eröffnet eine Vinothek mit Probierstube."));
+                Util.AddLog(next, null, (Lang.En ? $"{player.Name} opens a wine room for tastings." : $"{player.Name} eröffnet eine Vinothek mit Probierstube."));
                 break;
             case GameAction.SetPriceLevel or GameAction.ChooseGoal or GameAction.ChooseAmbition or GameAction.Construct or GameAction.Donate
                 or GameAction.OfferPlot or GameAction.WithdrawPlot:

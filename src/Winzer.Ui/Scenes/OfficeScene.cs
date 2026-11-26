@@ -136,7 +136,7 @@ public static class OfficeScene
         var last = Game.MonthNames[Economy.ProtectionMonths.Max() - 1];
         string[] notes =
         [
-            $"{OfficeKit.Staff(fte)}{(player.CellarMaster is not null ? Lang.T(" + Kellermeister", " + cellar master") : "")}{(player.HasVinothek ? " + Vinothek" : "")}",
+            $"{OfficeKit.Staff(fte)}{(player.CellarMaster is not null ? Lang.T(" + Kellermeister", " + cellar master") : "")}{(player.HasVinothek ? Lang.T(" + Vinothek", " + wine room") : "")}",
             Lang.En ? $"Care of {Util.FormatNumber(Market.TotalHectares(player), 1)} ha, of which {Util.FormatNumber(Market.PlantedHectares(player), 1)} ha planted" : $"Pflege von {Util.FormatNumber(Market.TotalHectares(player), 1)} ha, davon {Util.FormatNumber(Market.PlantedHectares(player), 1)} ha bestockt",
             costs.Protection > 0 ? (Lang.En ? $"Spraying season {first} to {last}" : $"Spritzsaison {first} bis {last}") : (Lang.En ? $"only incurred from {first} to {last}" : $"fällt nur von {first} bis {last} an"),
             Lang.En ? $"{Js.Round(Economy.LoanInterestRate * 100)} % p. a. on the loan{(player.Money < 0 ? $", {Js.Round(Economy.OverdraftInterestRate * 100)} % on the overdraft" : "")}" : $"{Js.Round(Economy.LoanInterestRate * 100)} % p. a. auf den Kredit{(player.Money < 0 ? $", {Js.Round(Economy.OverdraftInterestRate * 100)} % auf das Minus" : "")}",
@@ -313,16 +313,16 @@ public static class OfficeScene
         var withVinothek = player.Clone();
         withVinothek.HasVinothek = true;
         var percent = Js.Round((Economy.VinothekDemandFactor - 1) * 100);
-        var vinothek = UpgradeCard(639, "Vinothek", player.HasVinothek, Lang.T("geöffnet", "open"),
+        var vinothek = UpgradeCard(639, Lang.T("Vinothek", "Wine room"), player.HasVinothek, Lang.T("geöffnet", "open"),
             Lang.En ? $"Tasting room at the estate: + {percent} % cellar-door sales and + {Util.FormatNumber(Economy.VinothekReputation)} reputation on opening." : $"Probierstube am Hof: + {percent} % Ab-Hof-Absatz und + {Util.FormatNumber(Economy.VinothekReputation)} Bekanntheit zur Eröffnung.",
             (c, w, h) => PaintVinothek(c, w, h, player.HasVinothek));
         vinothek.With(Kit.Row(Lang.T("Absatz ab Hof im Monat", "Cellar-door sales per month"),
             player.HasVinothek ? $"{Util.FormatNumber(demand)} {Lang.T("Fl.", "btl.")}" : $"{Util.FormatNumber(demand)} → {Util.FormatNumber(Demand(withVinothek))} {Lang.T("Fl.", "btl.")}", 24, 300, 543, size: 19));
         vinothek.With(Kit.Row(Lang.T("Laufende Kosten", "Running costs"), $"{Util.FormatEuro(Economy.VinothekMonthlyCost)} {Lang.T("im Monat", "per month")}", 24, 332, 543, size: 19));
-        if (player.HasVinothek) vinothek.With(OfficeKit.Done(Lang.T("Die Vinothek ist geöffnet", "The Vinothek is open"), 16, 372, 559, 64));
+        if (player.HasVinothek) vinothek.With(OfficeKit.Done(Lang.T("Die Vinothek ist geöffnet", "The wine room is open"), 16, 372, 559, 64));
         else
         {
-            vinothek.With(Kit.Button(Lang.T("Vinothek bauen", "Build Vinothek"), 16, 372, 559, 64, () => session.Run(new GameAction.BuildVinothek()), ButtonKind.Primary,
+            vinothek.With(Kit.Button(Lang.T("Vinothek bauen", "Build wine room"), 16, 372, 559, 64, () => session.Run(new GameAction.BuildVinothek()), ButtonKind.Primary,
                 Lang.En ? $"costs {Util.FormatEuro(Economy.VinothekCost)} · + {percent} % sales · + {Util.FormatNumber(Economy.VinothekReputation)} reputation" : $"kostet {Util.FormatEuro(Economy.VinothekCost)} · + {percent} % Absatz · + {Util.FormatNumber(Economy.VinothekReputation)} Bekanntheit",
                 session.Over ? Lang.T("Die Partie ist beendet.", "The game is over.") : session.Problem(new GameAction.BuildVinothek())));
         }
@@ -409,7 +409,7 @@ public static class OfficeScene
         Line(Lang.T("Lohn je Kraft", "Wage per worker"), $"{Util.FormatEuro(Economy.WorkerSalary)} {Lang.T("im Monat", "per month")}");
         Line(Lang.T("Arbeiter im Weinberg", "Vineyard workers"), Util.FormatEuro(Js.Round(fte * Economy.WorkerSalary)));
         Line(Lang.T("Kellermeister", "Cellar master"), player.CellarMaster is { } master ? Util.FormatEuro(master.Salary) : Lang.T("keiner", "none"));
-        Line("Vinothek", player.HasVinothek ? Util.FormatEuro(Economy.VinothekMonthlyCost) : "–");
+        Line(Lang.T("Vinothek", "Wine room"), player.HasVinothek ? Util.FormatEuro(Economy.VinothekMonthlyCost) : "–");
         if (Math.Abs(factor - 1) > 0.001)
         {
             var change = Js.Round((factor - 1) * 100);
