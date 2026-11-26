@@ -287,6 +287,10 @@ public static class Kit
     /// </summary>
     static double CapTop(double center, double size) => center - (SansMetrics.Ascent - SansMetrics.Cap / 2) * size;
 
+    /// <summary>Einzeiliger Text, dessen Buchstaben senkrecht mittig in einer Fläche der Höhe <paramref name="boxHeight"/> sitzen (Schilder, Reiter)</summary>
+    public static SkiaLabel Centered(string text, double x, double w, double boxHeight, double size, Color color, bool bold = false, Align align = Align.Center) =>
+        Text(text, x, CapTop(boxHeight / 2, size), w, size * 1.5, size, color, bold: bold, align: align);
+
     /// <summary>
     /// Gemessene Breite eines einzeiligen Textes in Entwurfseinheiten. Entscheidet, ob ein Text umbrechen muss –
     /// eine Schätzung über die Zeichenzahl lag oft daneben und reservierte dann Platz für eine Zeile, die es nicht gab.
@@ -437,7 +441,7 @@ public static class Kit
             var tab = on
                 ? Box(left, 4, width, 46, radius: 23, gradient: Vertical(Theme.Gold, Theme.GoldDark))
                 : Box(left, 4, width, 46, Theme.GlassLight, 23);
-            tab.With(Text(labels[i], 0, 10, width, 28, 20, on ? Theme.Ink : Theme.Cream, bold: true, align: Align.Center));
+            tab.With(Centered(labels[i], 0, width, 46, 20, on ? Theme.Ink : Theme.Cream, bold: true));
             tab.Tap(() => select(index));
             layer.With(tab);
             if (badges is not null && badges[i] > 0) layer.With(Badge(badges[i], left + width - 6, 8, 12));

@@ -68,7 +68,7 @@ public static partial class MarketScene
 
     /// <summary>Kleines Schild, z. B. „+6 Punkte“</summary>
     internal static SkiaControl Chip(string text, double x, double y, double w, Color fill, Color color, double size = 15) =>
-        Kit.Box(x, y, w, size * 2, fill, size).With(Kit.Text(text, 0, size * 0.3, w, size * 1.5, size, color, bold: true, align: Align.Center));
+        Kit.Box(x, y, w, size * 2, fill, size).With(Kit.Centered(text, 0, w, size * 2, size, color, bold: true));
 
     /// <summary>Goldener Rahmen über einer gewählten Karte – als letztes Kind anhängen; null, wenn nicht gewählt</summary>
     internal static SkiaControl? SelectionFrame(bool selected, double w, double h, double radius = 16) =>

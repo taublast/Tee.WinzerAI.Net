@@ -97,10 +97,10 @@ public static class MainMenu
 
         layer.With(Kit.Text(Lang.T("Alle Weingüter, Personen, Siegel und Prämierungen sind frei erfunden.", "All estates, people, seals and wine awards are fictional."), 116, 992, 640, 30, 19, Theme.CreamSoft));
         layer.With(Kit.Box(1450, 980, 198, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
-            .With(Kit.Text("⚙️ " + Lang.T("Einstellungen", "Settings"), 0, 10, 198, 28, 19, Theme.Cream, align: Align.Center))
+            .With(Kit.Centered("⚙️ " + Lang.T("Einstellungen", "Settings"), 0, 198, 48, 19, Theme.Cream))
             .Tap(() => Go(app, Settings)));
         layer.With(Kit.Box(1660, 980, 150, 48, Theme.C("#99140a0e"), 24, Theme.GlassLine, 1.5)
-            .With(Kit.Text(Lang.T("Lizenzen", "Licenses"), 0, 10, 150, 28, 19, Theme.Cream, align: Align.Center))
+            .With(Kit.Centered(Lang.T("Lizenzen", "Licenses"), 0, 150, 48, 19, Theme.Cream))
             .Tap(() => Go(app, Licenses)));
     }
 }
@@ -348,7 +348,7 @@ internal static class MenuUi
         width = ChipWidth(text, size);
         var h = size * 2.1;
         return Kit.Box(x, y, width, h, fill ?? (dark ? Theme.GlassLight : Theme.C("#59d9c7a3")), h / 2)
-            .With(Kit.Text(text, 0, h / 2 - size * 0.72, width, size * 1.5, size, color ?? (dark ? Theme.Cream : Theme.Ink), align: Align.Center));
+            .With(Kit.Centered(text, 0, width, h, size, color ?? (dark ? Theme.Cream : Theme.Ink)));
     }
 }
 

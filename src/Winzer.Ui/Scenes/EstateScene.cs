@@ -170,7 +170,7 @@ public static class EstateScene
         var chipY = 24.0;
         void Chip(string text)
         {
-            scene.With(Kit.Box(28, chipY, 420, 44, Theme.C("#c71c1418"), 22).With(Kit.Text(text, 20, 9, 384, 28, 18, Theme.Cream)));
+            scene.With(Kit.Box(28, chipY, 420, 44, Theme.C("#c71c1418"), 22).With(Kit.Centered(text, 20, 384, 44, 18, Theme.Cream, align: Align.Start)));
             chipY += 52;
         }
         var frost = Defense.FrostChance(state, player);
@@ -234,7 +234,7 @@ public static class EstateScene
     static SkiaControl Building(string name, double cx, double y, int badge, Action tap, double width = 130)
     {
         var layer = Kit.Layer(cx - width / 2, y, width + 20, 44);
-        layer.With(Kit.Box(0, 4, width, 34, Theme.C("#c71c1418"), 17).With(Kit.Text(name, 0, 4, width, 26, 19, Theme.Cream, align: Align.Center)));
+        layer.With(Kit.Box(0, 4, width, 34, Theme.C("#c71c1418"), 17).With(Kit.Centered(name, 0, width, 34, 19, Theme.Cream)));
         if (badge > 0) layer.With(Kit.Badge(badge, width - 6, 8, 13));
         layer.Tap(tap);
         return layer;

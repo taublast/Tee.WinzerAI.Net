@@ -726,7 +726,7 @@ internal static class OfficeKit
         var chip = on
             ? Kit.Box(x, y, w, h, radius: h / 2, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark))
             : Kit.Box(x, y, w, h, Theme.PaperLine, h / 2);
-        chip.With(Kit.Text(text, 6, (h - size * 1.4) / 2, w - 12, size * 1.5, size, on ? Theme.C("#fff6e6") : Theme.Ink, bold: true, align: Align.Center));
+        chip.With(Kit.Centered(text, 6, w - 12, h, size, on ? Theme.C("#fff6e6") : Theme.Ink, bold: true));
         chip.Tap(tap);
         return chip;
     }

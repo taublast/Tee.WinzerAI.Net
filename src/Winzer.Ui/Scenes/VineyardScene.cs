@@ -62,7 +62,7 @@ public static class VineyardScene
         plot.Oechsle > 0 && session.Problem(new GameAction.Harvest(plot.Id)) is null;
 
     internal static SkiaShape Pill(string text, double x, double y, double w, double h, Color fill, Color color, double size = 16, bool bold = false) =>
-        Kit.Box(x, y, w, h, fill, h / 2).With(Kit.Text(text, 14, (h - size * 1.4) / 2, w - 28, size * 1.5, size, color, bold: bold, align: Align.Center));
+        Kit.Box(x, y, w, h, fill, h / 2).With(Kit.Centered(text, 14, w - 28, h, size, color, bold: bold));
 
     internal static string GrapeName(GrapeId id) => Grapes.All[id].Name.Replace(" (PIWI)", "");
 
@@ -141,12 +141,12 @@ public static class VineyardScene
         var tile = Kit.Box(x, y, w, h, Theme.C("#eb1c1418"), 18, on ? Theme.Gold : Theme.GlassLine, on ? 4 : 1.5, shadow: true);
         tile.With(Kit.Paint(8, 8, w - 16, pictureHeight, (c, pw, ph) => VineyardPaint.Plot(c, pw, ph, state, plot)));
         if (Harvestable(session, plot))
-            tile.With(Kit.Box(18, 18, 112, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark)).With(Kit.Text(Lang.T("lesereif", "ready to harvest"), 0, 4, 112, 24, 17, Theme.Ink, bold: true, align: Align.Center)));
+            tile.With(Kit.Box(18, 18, 112, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark)).With(Kit.Centered(Lang.T("lesereif", "ready to harvest"), 0, 112, 32, 17, Theme.Ink, bold: true)));
         else if (plot.Grape is null && session.Problem(new GameAction.Plant(plot.Id, GrapeId.Riesling)) is null)
-            tile.With(Kit.Box(18, 18, 132, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark)).With(Kit.Text(Lang.T("pflanzbereit", "ready to plant"), 0, 4, 132, 24, 17, Theme.Ink, bold: true, align: Align.Center)));
+            tile.With(Kit.Box(18, 18, 132, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark)).With(Kit.Centered(Lang.T("pflanzbereit", "ready to plant"), 0, 132, 32, 17, Theme.Ink, bold: true)));
 
         if (plot.ForAuction)
-            tile.With(Kit.Box(w - 18 - 148, 18, 148, 32, radius: 16, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark)).With(Kit.Text(Lang.T("Versteigerung", "Auction"), 0, 4, 148, 24, 17, Theme.Cream, bold: true, align: Align.Center)));
+            tile.With(Kit.Box(w - 18 - 148, 18, 148, 32, radius: 16, gradient: Kit.Vertical(Theme.Wine, Theme.WineDark)).With(Kit.Centered(Lang.T("Versteigerung", "Auction"), 0, 148, 32, 17, Theme.Cream, bold: true)));
 
         var ty = pictureHeight + 16;
         tile.With(Kit.Text(plot.Name, 16, ty, w - 32 - 96, 30, 21, on ? Theme.Gold : Theme.Cream, bold: true));

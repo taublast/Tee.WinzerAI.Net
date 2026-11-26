@@ -37,7 +37,7 @@ public static class VillageScene
             var chip = own
                 ? Kit.Box(slots[i].Cx - width / 2, 382, width, 32, radius: 16, gradient: Kit.Vertical(Theme.Gold, Theme.GoldDark))
                 : Kit.Box(slots[i].Cx - width / 2, 382, width, 32, Theme.C("#d91c1418"), 16);
-            chip.With(Kit.Text(p.Name, 10, 5, width - 20, 24, 16, own ? Theme.Ink : Theme.Cream, bold: own, align: Align.Center));
+            chip.With(Kit.Centered(p.Name, 10, width - 20, 32, 16, own ? Theme.Ink : Theme.Cream, bold: own));
             if (!own && !p.Bankrupt)
             {
                 var id = p.Id;
@@ -300,7 +300,7 @@ public static class VillageScene
             Tier.Silber => (Lang.T("Silber", "Silver"), Theme.C("#9aa3ad"), Theme.Ink),
             _ => ("Bronze", Theme.C("#a5673a"), Colors.White),
         };
-        return Kit.Box(x, y, 66, 22, fill, 11).With(Kit.Text(name, 0, 2, 66, 20, 13, text, bold: true, align: Align.Center));
+        return Kit.Box(x, y, 66, 22, fill, 11).With(Kit.Centered(name, 0, 66, 22, 13, text, bold: true));
     }
 
     // ---- Reiter 1: Nachbarschaft ----
